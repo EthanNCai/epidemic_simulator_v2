@@ -6,6 +6,10 @@ using System.Linq;
 using Unity.VisualScripting;
 using System;
 
+public class OnGridValueChangedEventArgs : EventArgs
+{
+    public Vector3Int position;
+}
 public class GridValuesContainer<TGridObject>
 {
 
@@ -15,10 +19,7 @@ public class GridValuesContainer<TGridObject>
     public Grid grid;
     public TimeManager timeManager;
 
-    public class OnGridValueChangedEventArgs : EventArgs
-    {
-        public Vector3Int position;
-    }
+    
     public event EventHandler<OnGridValueChangedEventArgs> OnGridValueChanged;
     HashSet<Vector2Int> validCells = new HashSet<Vector2Int>();
     public TGridObject[,] GetGridArray()

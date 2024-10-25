@@ -28,7 +28,7 @@ public class VolumeVisualizeNode
         this.timeManager = timeManager;
 
 
-        timeManager.OnHourChanged += (object sender, TimeManager.OnHourChangedEventArgs eventArgs) =>
+        timeManager.OnShiftHourChanged += (object sender, TimeManager.OnShiftHourChangedEventArgs eventArgs) =>
         {
             SelfCleaning();
         };
@@ -51,10 +51,7 @@ public class VolumeVisualizeNode
         virusVolume = (int)(virusVolume * selfCleaningRate);
         virusVolumeGridValuesManager.TriggerGridObjectChanged(cellPosition);
     }
-    public void SetSelfCleaningSpeed(float newSelfCleaningRate)
-    {
-        selfCleaningRate = newSelfCleaningRate;
-    }
+    
     public void SetVirusVolume(int newVolume)
     {
         virusVolume = math.max(virusVolume, newVolume);

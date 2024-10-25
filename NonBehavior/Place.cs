@@ -11,6 +11,10 @@ public class Place
 
     public Place(UnityEngine.Vector3 cellPosition, int width, int height)
     {
+        if(Mathf.Min(height, width ) < 2)
+        {
+            Debug.LogError("Place Size Should no smaller than 2 Units");
+        }
         this.cellPosition = cellPosition;
         this.width = width;
         this.height = height;
