@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
@@ -33,12 +34,12 @@ public class PersonBehavior : MonoBehaviour
 
 
     //CONSTS
-    private const int TIME_TO_WORK = 4;
-    private const int TIME_TO_HOME = 15;
+    private const int TIME_TO_WORK = 3;
+    private const int TIME_TO_HOME = 16;
     private const float DECISION_DISTANCE = 0.1f;
-    private const int MAXIMUM_RANDOM_WAIT = 6;
-    private const float UNINFECTED_INFECTION_PROB = 1.0f;
-    private const float RECOVERD_INFECTION_PROB = 0.0f;
+    private const int MAXIMUM_RANDOM_WAIT = 8;
+    private const float UNINFECTED_INFECTION_PROB = 0.3f;
+    private const float RECOVERD_INFECTION_PROB = 0.1f;
 
     // infection related
     public Infection infection = null;
@@ -58,9 +59,10 @@ public class PersonBehavior : MonoBehaviour
         transform.position = home.GenerateInPlacePosition();
         pathStack = new Stack<UnityEngine.Vector3>();
         pathFinding = new PathFinding(gridValuesAttachedBehavior.pathFindingGridValuesManager);
-        timeManager.OnHourChanged += async (object sender, TimeManager.OnHourChangedEventArgs eventArgs) =>
+        timeManager.OnHourChanged += (object sender, TimeManager.OnHourChangedEventArgs eventArgs) =>
         {
-            await Scheduler(eventArgs);
+            //await Scheduler(eventArgs);
+            StartCoroutine(CoroutineScheduler(eventArgs));
         };
         timeManager.OnShiftHourChanged += (object sender,
         TimeManager.OnShiftHourChangedEventArgs eventArgs) =>
@@ -81,6 +83,10 @@ public class PersonBehavior : MonoBehaviour
         currentPosition = transform.position;
         startNode = gridValuesAttachedBehavior.pathFindingGridValuesManager.GetGridObj(currentPosition);
     }
+
+
+    
+
     private async Task MoveTo(CancellationTokenSource moveToCancelToken)
     {
         currentPlace = null;
@@ -150,12 +156,9 @@ public class PersonBehavior : MonoBehaviour
     private async void GoToPlace(Place place)
     {
         dstPlace = place;
-        //Debug.Log(currentPlace?.ToString());
         await FindPath();
-        //Debug.Log("Path Found!");
         moveToCancelToken?.Cancel();
         moveToCancelToken = new CancellationTokenSource();
-        //Debug.Log("Move To Set Out!");
         movingTask = MoveTo(moveToCancelToken);
     }
 
@@ -201,9 +204,9 @@ public class PersonBehavior : MonoBehaviour
         }
 
     }
-    async Task Scheduler(TimeManager.OnHourChangedEventArgs eventArgs)
+    async Task AsyncScheduler(TimeManager.OnHourChangedEventArgs eventArgs)
     {
-        //Profiler.BeginSample("My Sample2");
+        // Deprecated due to performance issue
         int max = (int)(timeManager.hourDuration * MAXIMUM_RANDOM_WAIT * 1000);
         int randomWait = UnityEngine.Random.Range(0, max);
         await Task.Delay(randomWait);
@@ -214,8 +217,23 @@ public class PersonBehavior : MonoBehaviour
             case TIME_TO_HOME: GoToPlace(home); return;
             default: return;
         }
-        //Profiler.EndSample();
     }
+
+    IEnumerator CoroutineScheduler(TimeManager.OnHourChangedEventArgs eventArgs)
+    {
+        int max = (int)(timeManager.hourDuration * MAXIMUM_RANDOM_WAIT * 1000);
+        int randomWait = UnityEngine.Random.Range(0, max);
+        yield return new WaitForSeconds(randomWait / 1000f);
+
+        switch (eventArgs.newHour)
+        {
+            case TIME_TO_WORK: GoToPlace(office); break;
+            case TIME_TO_HOME: GoToPlace(home); break;
+            default: break;
+        }
+
+    }
+
     public void HourSummaryCalculation(TimeManager.OnShiftHourChangedEventArgs eventArgs)
     {
         if (infection == null)
