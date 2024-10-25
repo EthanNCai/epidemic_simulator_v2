@@ -10,47 +10,68 @@ public class PersonBehavior : MonoBehaviour
 {
     public TimeManager timeManager;
     public GridValuesAttachedBehavior gridValuesAttachedBehavior;
-    Stack<Vector3> pathStack;
-    Vector3 dst = Vector3.zero;
+    Stack<UnityEngine.Vector3> pathStack;
+    //UnityEngine.Vector3 dst = UnityEngine.Vector3.zero;
     Task movingTask = null;
     CancellationTokenSource moveToCancelToken;
     PathFinding pathFinding ;
     private static readonly object gridValuesContainerLock = new object();
-    Vector3 home = new Vector3(3, 3);
-    Vector3 office = new Vector3(8,8);
-    private static int TIME_TO_WORK = 4;
-    private static int TIME_TO_HOME = 15;
-    private Vector3 currentPosition;
+    Place home;
+    Place office;
+    Place dstPlace;
+    
+    private UnityEngine.Vector3 currentPosition;
+    private Place currentPlace = null;
+
+
     PathFindingNode startNode;
+    private bool isInitialized =  false;
 
-    void Start()
+
+    //CONSTS
+    private const int TIME_TO_WORK = 4;
+    private const int TIME_TO_HOME = 15;
+    private const float DECISION_DISTANCE = 0.1f;
+
+
+
+    public void init(Place home, Place office, GridValuesAttachedBehavior gridValuesAttachedBehavior, TimeManager timeManager)
     {
-        transform.position = home;
-        pathStack = new Stack<Vector3>();
+        this.timeManager = timeManager;
+        this.home = home;
+        this.office = office;
+        this.gridValuesAttachedBehavior = gridValuesAttachedBehavior;
+        transform.position = home.GenerateInPlacePosition();
+        pathStack = new Stack<UnityEngine.Vector3>();
         pathFinding = new PathFinding(gridValuesAttachedBehavior.pathFindingGridValuesManager);
-
         timeManager.OnHourChanged += async (object sender, TimeManager.OnHourChangedEventArgs eventArgs) =>
         {
             await Scheduler(eventArgs);
         };
+        isInitialized = true;
     }
+
+    
     void  Update()
     {
+        if (!isInitialized) { return ; }
         currentPosition = transform.position;
         startNode = gridValuesAttachedBehavior.pathFindingGridValuesManager.GetGridObj(currentPosition);
     }
     private async Task MoveTo(CancellationTokenSource moveToCancelToken)
     {
+        currentPlace = null;
         while (true) {
 
             if (pathStack.Count == 0) {
+                currentPlace = dstPlace;
                 break;
             }
-            Vector3 currentTarget = pathStack.Pop();
-            while (Vector3.Distance(transform.position, currentTarget) > 0.3f)
+            UnityEngine.Vector3 currentTarget = pathStack.Pop();
+            while (UnityEngine.Vector3.Distance(transform.position, currentTarget) > DECISION_DISTANCE)
             {
-                Vector3 direction = (currentTarget - transform.position).normalized;
-                transform.position += direction * 2f * Time.deltaTime;
+                UnityEngine.Vector3 direction = (currentTarget - transform.position).normalized;
+                transform.position += direction * 5f * Time.deltaTime;
                 await Task.Yield();
                 if (moveToCancelToken.IsCancellationRequested)
                 {
@@ -60,37 +81,54 @@ public class PersonBehavior : MonoBehaviour
 
         }
     }
-    private async Task FindPath(Vector3 dst)
+    private async Task FindPath()
     {
           await Task.Run(() =>
           {
               lock (gridValuesContainerLock)
-              { 
-                  pathFinding.FindPath(startNode, gridValuesAttachedBehavior.pathFindingGridValuesManager.GetGridObj(dst), pathStack); 
+              {
+                  pathStack.Clear();
+                  Vector3 inPlaceShift = dstPlace.GenerateInPlacePosition();
+                  pathStack.Push(inPlaceShift);
+                  if (currentPlace != null)
+                  {
+                      pathFinding.FindPath(currentPlace.cellPosition, dstPlace.cellPosition, pathStack);
+                  }
+                  else
+                  {
+                      pathFinding.FindPath(currentPosition, dstPlace.cellPosition, pathStack);
+                  }
+                  
+                  
               }
           }
          );
     }
     async Task Scheduler(TimeManager.OnHourChangedEventArgs eventArgs)
     {
-        int max = (int)(timeManager.hourDuration * 1 * 1000);
+        int max = (int)(timeManager.hourDuration * 4 * 1000);
         int randomWait = UnityEngine.Random.Range(0, max);
-        if (eventArgs.newHour == TIME_TO_WORK)
+        await Task.Delay(randomWait);
+
+        switch (eventArgs.newHour)
         {
-            await Task.Delay(randomWait);
-            await FindPath(office);
-            moveToCancelToken?.Cancel();
-            moveToCancelToken = new CancellationTokenSource();
-            movingTask = MoveTo(moveToCancelToken);
-        }
-        if (eventArgs.newHour == TIME_TO_HOME)
-        {
-            await Task.Delay(randomWait);
-            await FindPath(home);
-            moveToCancelToken?.Cancel();
-            moveToCancelToken = new CancellationTokenSource();
-            movingTask = MoveTo(moveToCancelToken);
+            case TIME_TO_WORK: GoToPlace(office); return;
+            case TIME_TO_HOME: GoToPlace(home); return;
+            default: return;
         }
     }
+    private async void GoToPlace(Place place)
+    {
+        dstPlace = place;
+        //Debug.Log(currentPlace?.ToString());
+        await FindPath();
+        //Debug.Log("Path Found!");
+        moveToCancelToken?.Cancel();
+        moveToCancelToken = new CancellationTokenSource();
+        //Debug.Log("Move To Set Out!");
+        movingTask = MoveTo(moveToCancelToken);
+    }
+
     
+
 }

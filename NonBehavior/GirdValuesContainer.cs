@@ -51,8 +51,8 @@ public class GridValuesContainer<TGridObject>
             {
                 if (showDebugText)
                 {
-                    Vector3 TextPosition = grid.CellToLocal(new Vector3Int(x, y)) + new Vector3(grid.cellSize.x, grid.cellSize.y) * 0.5f;
-                    Vector3 TextWorldPosition = grid.transform.TransformPoint(TextPosition);
+                    UnityEngine.Vector3 TextPosition = grid.CellToLocal(new Vector3Int(x, y)) + new UnityEngine.Vector3(grid.cellSize.x, grid.cellSize.y) * 0.5f;
+                    UnityEngine.Vector3 TextWorldPosition = grid.transform.TransformPoint(TextPosition);
                     debugGridArray[x, y] = UtilsClass.CreateWorldText(gridArray[x, y].ToString(), null, TextWorldPosition, 35, Color.white, TextAnchor.MiddleCenter);
 
                 }
@@ -75,9 +75,10 @@ public class GridValuesContainer<TGridObject>
 
     public TGridObject GetGridObj(Vector3 localPosition)
     {
-        //Vector3Int cellPosition = grid.LocalToCell(localPosition);
+        //Vector3Int cellPosition = grid.LocalToCell(localPosition);s
 
-        Vector3Int cellPosition =  new Vector3Int((int)localPosition.x, (int)localPosition.y);
+        Vector3Int cellPosition = 
+            new Vector3Int((int)Math.Floor(localPosition.x), (int)Math.Floor(localPosition.y));
         if (CheckPositionValid(cellPosition))
         {
 

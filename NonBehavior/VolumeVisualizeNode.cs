@@ -37,7 +37,7 @@ public class VolumeVisualizeNode
     public void SetVirusVolumeTile(GameObject virusVolumeTile)
     {
         this.virusVolumeTile = virusVolumeTile;
-        this.virusVolumeTile.transform.position = this.cellPosition + new Vector3(0.5f, 0.5f);
+        this.virusVolumeTile.transform.position = this.cellPosition + new UnityEngine.Vector3(0.5f, 0.5f);
     }
 
     private void SelfCleaning()

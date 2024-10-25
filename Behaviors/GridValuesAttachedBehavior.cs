@@ -16,7 +16,7 @@ public class GridValuesAttachedBehavior : MonoBehaviour
     public GridValuesContainer<PathFindingNode> pathFindingGridValuesManager;
     public GridValuesContainer<VolumeVisualizeNode> virusVolumeGridValuesManager;
 
-    void Start()
+    void Awake()
     {
         pathFindingGridValuesManager = new GridValuesContainer<PathFindingNode>(
             isVisualizePathFinding,
@@ -39,14 +39,14 @@ public class GridValuesAttachedBehavior : MonoBehaviour
             for (int j = 0; j < virusVolumeGridValuesManager.height; j++)
             {
                 GameObject newTile = Instantiate(virusVolumeTilePrefab);
-                virusVolumeGridValuesManager.GetGridObj(new Vector3(i, j)).SetVirusVolumeTile(newTile);
+                virusVolumeGridValuesManager.GetGridObj(new UnityEngine.Vector3(i, j)).SetVirusVolumeTile(newTile);
             }
         }
     }
 
-    public Vector3 GetWorldGridCenter()
+    public UnityEngine.Vector3 GetWorldGridCenter()
     {
-        Vector3 localCenter =  new Vector3((width / 2) * grid.cellSize.x, (height / 2) * grid.cellSize.y, -10);
+        UnityEngine.Vector3 localCenter =  new UnityEngine.Vector3((width / 2) * grid.cellSize.x, (height / 2) * grid.cellSize.y, -10);
         return transform.TransformPoint(localCenter);
     }
 
