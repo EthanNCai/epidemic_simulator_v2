@@ -5,7 +5,7 @@ using UnityEngine;
 public class Place
 {
     public  UnityEngine.Vector3 cellPosition;
-    private int width, height;
+    public int width, height;
     private System.Random randomGenerator = new System.Random();
 
 
@@ -27,8 +27,5 @@ public class Place
         cellPosition.y + (float)(height * randomGenerator.NextDouble()));
     }
 
-    public override string ToString()
-    {
-        return this.cellPosition.ToString();
-    }
+    
 }

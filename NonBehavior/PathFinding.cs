@@ -36,7 +36,7 @@ public class PathFinding
 
     public void FindPath(Vector3 startLocalPos, Vector3 endLocalPos, Stack<UnityEngine.Vector3> pathStack)
     {
-
+            
             PathFindingNode startNode = pathFindingGridValuesManager.GetGridObj(startLocalPos);
             PathFindingNode endNode = pathFindingGridValuesManager.GetGridObj(endLocalPos);
             if(startNode == endNode) { return; }    
@@ -66,7 +66,8 @@ public class PathFinding
                 }
                 openList.Remove(currentNode);
                 closeList.Add(currentNode);
-                if (!currentNode.isWalkable)
+                //HashSet<PathFindingNode> neibors = GetNeiborNodes(currentNode);
+                if (!currentNode.isWalkable && currentNode != startNode)
                 {
                     continue;
                 }
@@ -86,6 +87,8 @@ public class PathFinding
                     }
                 }
             }
+        Debug.Log("startLocalPos" + startLocalPos.ToString());
+        Debug.Log("endLocalPos" + endLocalPos.ToString());
         Debug.LogWarning("No path Found");
         return;
         

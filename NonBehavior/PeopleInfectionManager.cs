@@ -7,7 +7,7 @@ using static UnityEngine.GraphicsBuffer;
 
 public class PeopleInfectionManager : MonoBehaviour
 {
-    public PeopleManager peopleManager;
+    public PlacePeopleManager peopleManager;
     public GridValuesAttachedBehavior gridValuesAttachedBehavior;
     public TimeManager timeManager;
     private List<GameObject> infectedPeoples = new List<GameObject>();
@@ -55,7 +55,7 @@ public class PeopleInfectionManager : MonoBehaviour
             //Profiler.BeginSample("My Sample1");
             CalculateContacts();
             //Profiler.EndSample();
-            Debug.Log(peopleManager.persons.Count+"  "+ infectedPeoples.Count +"  "+ recoverdPeoples.Count);
+            //Debug.Log(peopleManager.persons.Count+"  "+ infectedPeoples.Count +"  "+ recoverdPeoples.Count);
         };
     }
 

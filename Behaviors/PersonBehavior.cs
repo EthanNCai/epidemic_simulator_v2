@@ -20,13 +20,13 @@ public class PersonBehavior : MonoBehaviour
     CancellationTokenSource moveToCancelToken;
     PathFinding pathFinding ;
     private static readonly object gridValuesContainerLock = new object();
-    Place home;
-    Place office;
-    Place dstPlace;
+    PlaceBehavior home;
+    PlaceBehavior office;
+    PlaceBehavior dstPlace;
     
     
     private UnityEngine.Vector3 currentPosition;
-    private Place currentPlace = null;
+    private PlaceBehavior currentPlace = null;
 
 
     PathFindingNode startNode;
@@ -37,7 +37,7 @@ public class PersonBehavior : MonoBehaviour
     private const int TIME_TO_WORK = 3;
     private const int TIME_TO_HOME = 16;
     private const float DECISION_DISTANCE = 0.1f;
-    private const int MAXIMUM_RANDOM_WAIT = 8;
+    private const int MAXIMUM_RANDOM_WAIT = 12;
     private const float UNINFECTED_INFECTION_PROB = 0.3f;
     private const float RECOVERD_INFECTION_PROB = 0.1f;
 
@@ -46,7 +46,7 @@ public class PersonBehavior : MonoBehaviour
     public int maxExposedToday = 0;
     public InfectionStatus infectionStatus = InfectionStatus.UnInfected;
 
-    public void init(Place home, Place office, GridValuesAttachedBehavior gridValuesAttachedBehavior, TimeManager timeManager, PeopleInfectionManager personInfectionManager, GameObject personObj,Infection infection)
+    public void init(PlaceBehavior home, PlaceBehavior office, GridValuesAttachedBehavior gridValuesAttachedBehavior, TimeManager timeManager, PeopleInfectionManager personInfectionManager, GameObject personObj,Infection infection)
     {
         this.timeManager = timeManager;
         this.home = home;
@@ -55,6 +55,7 @@ public class PersonBehavior : MonoBehaviour
         this.personInfectionManager = personInfectionManager;
         this.personObj = personObj;
         this.infection = infection;
+        this.currentPlace = home;
 
         transform.position = home.GenerateInPlacePosition();
         pathStack = new Stack<UnityEngine.Vector3>();
@@ -153,9 +154,9 @@ public class PersonBehavior : MonoBehaviour
         }
     }
 
-    private async void GoToPlace(Place place)
+    private async void GoToPlace(PlaceBehavior placeToGo)
     {
-        dstPlace = place;
+        dstPlace = placeToGo;
         await FindPath();
         moveToCancelToken?.Cancel();
         moveToCancelToken = new CancellationTokenSource();
