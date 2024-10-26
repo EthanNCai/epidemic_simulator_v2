@@ -45,7 +45,7 @@ public class PersonBehavior : MonoBehaviour
     public Infection infection = null;
     public int maxExposedToday = 0;
     public InfectionStatus infectionStatus = InfectionStatus.UnInfected;
-
+    private System.Random randomGenerator = new System.Random();
     public void init(PlaceBehavior home, PlaceBehavior office, GridValuesAttachedBehavior gridValuesAttachedBehavior, TimeManager timeManager, PeopleInfectionManager personInfectionManager, GameObject personObj,Infection infection)
     {
         this.timeManager = timeManager;
@@ -59,7 +59,7 @@ public class PersonBehavior : MonoBehaviour
 
         transform.position = home.GenerateInPlacePosition();
         pathStack = new Stack<UnityEngine.Vector3>();
-        pathFinding = new PathFinding(gridValuesAttachedBehavior.pathFindingGridValuesManager);
+        pathFinding = new PathFinding(gridValuesAttachedBehavior.pathFindingGVC);
         timeManager.OnHourChanged += (object sender, TimeManager.OnHourChangedEventArgs eventArgs) =>
         {
             //await Scheduler(eventArgs);
@@ -82,7 +82,7 @@ public class PersonBehavior : MonoBehaviour
     {
         if (!isInitialized) { return ; }
         currentPosition = transform.position;
-        startNode = gridValuesAttachedBehavior.pathFindingGridValuesManager.GetGridObj(currentPosition);
+        startNode = gridValuesAttachedBehavior.pathFindingGVC.GetGridObj(currentPosition);
     }
 
 
@@ -90,6 +90,9 @@ public class PersonBehavior : MonoBehaviour
 
     private async Task MoveTo(CancellationTokenSource moveToCancelToken)
     {
+        float movingBaseSpeed = timeManager.GetCorrespondingMovingSpeed();
+        float jitteredSpeed = movingBaseSpeed + movingBaseSpeed * (float)randomGenerator.NextDouble();
+        // speed -> (100%, +200%)
         currentPlace = null;
         while (true) {
 
@@ -101,8 +104,8 @@ public class PersonBehavior : MonoBehaviour
             while (UnityEngine.Vector3.Distance(transform.position, currentTarget) > DECISION_DISTANCE)
             {
                 UnityEngine.Vector3 direction = (currentTarget - transform.position).normalized;
-                float movingSpeed = timeManager.GetCorrespondingMovingSpeed();
-                transform.position += direction * movingSpeed * Time.deltaTime;
+                
+                transform.position += direction * jitteredSpeed * Time.deltaTime;
                 await Task.Yield();
                 if (moveToCancelToken.IsCancellationRequested)
                 {
@@ -123,14 +126,9 @@ public class PersonBehavior : MonoBehaviour
                   pathStack.Clear();
                   Vector3 inPlaceShift = dstPlace.GenerateInPlacePosition();
                   pathStack.Push(inPlaceShift);
-                  if (currentPlace != null)
-                  {
-                      pathFinding.FindPath(currentPlace.cellPosition, dstPlace.cellPosition, pathStack);
-                  }
-                  else
-                  {
-                      pathFinding.FindPath(currentPosition, dstPlace.cellPosition, pathStack);
-                  }
+                  Vector3 startPosition = currentPlace != null ? currentPlace.cellPosition : currentPosition;
+                  pathFinding.FindPath(startPosition, dstPlace.cellPosition, pathStack);
+                  
               }
               //Profiler.EndSample();
           }
@@ -160,7 +158,7 @@ public class PersonBehavior : MonoBehaviour
         await FindPath();
         moveToCancelToken?.Cancel();
         moveToCancelToken = new CancellationTokenSource();
-        movingTask = MoveTo(moveToCancelToken);
+        if (pathStack.Count != 0) {movingTask = MoveTo(moveToCancelToken);}
     }
 
     public bool RollTheDice(float trueProb)

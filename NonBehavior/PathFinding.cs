@@ -34,12 +34,12 @@ public class PathFinding
         }
     }
 
-    public void FindPath(Vector3 startLocalPos, Vector3 endLocalPos, Stack<UnityEngine.Vector3> pathStack)
+    public bool FindPath(Vector3 startLocalPos, Vector3 endLocalPos, Stack<UnityEngine.Vector3> pathStack)
     {
             
             PathFindingNode startNode = pathFindingGridValuesManager.GetGridObj(startLocalPos);
             PathFindingNode endNode = pathFindingGridValuesManager.GetGridObj(endLocalPos);
-            if(startNode == endNode) { return; }    
+            if(startNode == endNode) { return false; }    
 
             openList.Clear();
             openList.Add(startNode);
@@ -61,7 +61,7 @@ public class PathFinding
             if (currentNode == endNode)
                 {
                     CalculatePathStack(endNode, pathStack);
-                    return;
+                    return true;
 
                 }
                 openList.Remove(currentNode);
@@ -87,10 +87,11 @@ public class PathFinding
                     }
                 }
             }
-        Debug.Log("startLocalPos" + startLocalPos.ToString());
-        Debug.Log("endLocalPos" + endLocalPos.ToString());
-        Debug.LogWarning("No path Found");
-        return;
+        //Debug.Log("startLocalPos" + startLocalPos.ToString());
+        //Debug.Log("endLocalPos" + endLocalPos.ToString());
+        pathStack.Clear();
+        Debug.Log("No path Found");
+        return false;
         
     }
     private void CalculateNeiborDict()

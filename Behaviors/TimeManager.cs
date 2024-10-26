@@ -116,7 +116,7 @@ public class TimeManager : MonoBehaviour
     {
         timer += Time.deltaTime;
         timerSub += Time.deltaTime;
-        if (timerSub > hourDuration *0.4f)
+        if (timerSub > hourDuration *0.6f)
         {
             timerSub = 0;
             OnShiftHourChanged?.Invoke(this, new OnShiftHourChangedEventArgs { newSubHour = currentHour });

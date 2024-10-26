@@ -12,7 +12,8 @@ public class PathFindingNode
     public PathFindingNode cameFrom;
     public Vector3Int cellPosition;
     public bool isWalkable = true;
-
+    //public bool manSetWalkableFlag = false;
+    public bool defactRoutePoint = false;
 
     public PathFindingNode(GridValuesContainer<PathFindingNode> gridValuesManager, Vector3Int cellPosition, TimeManager timeManager)
     {
@@ -21,6 +22,7 @@ public class PathFindingNode
         this.gCost = int.MaxValue;
         this.CalculateFCost();
         this.cameFrom = null;
+        //this.isPlaceUpHead = false;
     }
     public void ResetSelf()
     {
@@ -29,9 +31,19 @@ public class PathFindingNode
         cameFrom = null;
     }
 
-    public void toggleWalkable()
+    public void ToggleWalkable()
     {
         isWalkable = !isWalkable;
+        gridValuesManager.TriggerGridObjectChanged(cellPosition);
+    }
+    public void SetFalseWalkable()
+    {
+        isWalkable = false;
+        gridValuesManager.TriggerGridObjectChanged(cellPosition);
+    }
+    public void SetTrueWalkable()
+    {
+        isWalkable = true;
         gridValuesManager.TriggerGridObjectChanged(cellPosition);
     }
 
@@ -43,7 +55,8 @@ public class PathFindingNode
 
     public void CalculateFCost()
     {
-        fCost = gCost + hCost;
+        int temp = defactRoutePoint ? 2 * (gCost + hCost ) : gCost + hCost;
+        
     }
     public override string ToString()
     {

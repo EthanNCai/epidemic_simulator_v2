@@ -12,6 +12,7 @@ public class PeopleInfectionManager : MonoBehaviour
     public TimeManager timeManager;
     private List<GameObject> infectedPeoples = new List<GameObject>();
     private List<GameObject> recoverdPeoples = new List<GameObject>();
+    private Dictionary<Vector3Int,int> peopleDensityDict = new Dictionary<Vector3Int, int>();
     //private int currentHour = -1;
 
     // compute contact in every hour
@@ -24,16 +25,44 @@ public class PeopleInfectionManager : MonoBehaviour
             
             if (personBehavior.infection == null) { continue; }
 
-            VolumeVisualizeNode tileVirusVolume = gridValuesAttachedBehavior.virusVolumeGridValuesManager.GetGridObj(personObj.transform.position);
+            VolumeVisualizeNode tileVirusVolume = gridValuesAttachedBehavior.volumeGVC.GetGridObj(personObj.transform.position);
 
             int volumeToSet = Mathf.Max(tileVirusVolume.virusVolume, personBehavior.infection.CheckVirusVolume());
             tileVirusVolume.SetVirusVolume(volumeToSet);
         }
     }
+    private void CalculatePopulationDensity()
+    {
+        peopleDensityDict.Clear();
+        for (int i = 0; i < peopleManager.persons.Count; i++)
+        {
+            GameObject personObj = peopleManager.persons[i];
+            PersonBehavior personBehavior = personObj.GetComponent<PersonBehavior>();
+            Vector3Int cellPosition = gridValuesAttachedBehavior.volumeGVC.LocalToCellPositionConverter(personObj.transform.position);
+            if (peopleDensityDict.ContainsKey(cellPosition)){
+                peopleDensityDict[cellPosition] += 1;
+            }
+            else
+            {
+                peopleDensityDict[cellPosition] = 0;
+            }
+        }
+        for (int i = 0; i < gridValuesAttachedBehavior.volumeGVC.width; i++)
+        {
+            for (int j = 0; j < gridValuesAttachedBehavior.volumeGVC.height; j++)
+            {
+                Vector3Int targetPosition = new Vector3Int(i, j);
+                if(!peopleDensityDict.ContainsKey(targetPosition)){ continue; }
+                VolumeVisualizeNode tileVirusVolume = gridValuesAttachedBehavior.volumeGVC.GetGridObj(targetPosition);
+                
+                tileVirusVolume.SetPopuVolume(peopleDensityDict[targetPosition]);
+            }
+        }
+    }
 
     public int CheckExposeVolumeHere(Vector3 PersonPosition)
     {
-        return gridValuesAttachedBehavior.virusVolumeGridValuesManager.GetGridObj(PersonPosition).virusVolume;
+        return gridValuesAttachedBehavior.volumeGVC.GetGridObj(PersonPosition).virusVolume;
     }
     public void someOneJustGotInfected(GameObject person)
     {
@@ -49,13 +78,10 @@ public class PeopleInfectionManager : MonoBehaviour
 
     void Start()
     {
-        timeManager.OnShiftHourChanged += async (object sender, TimeManager.OnShiftHourChangedEventArgs eventArgs) =>
+        timeManager.OnShiftHourChanged += (object sender, TimeManager.OnShiftHourChangedEventArgs eventArgs) =>
         {
-            await Task.Delay(Random.Range(0, 1700));
-            //Profiler.BeginSample("My Sample1");
             CalculateContacts();
-            //Profiler.EndSample();
-            //Debug.Log(peopleManager.persons.Count+"  "+ infectedPeoples.Count +"  "+ recoverdPeoples.Count);
+            CalculatePopulationDensity();
         };
     }
 
