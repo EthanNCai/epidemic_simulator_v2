@@ -49,6 +49,16 @@ public class GridValuesAttachedBehavior : MonoBehaviour
         UnityEngine.Vector3 localCenter =  new UnityEngine.Vector3((width / 2) * grid.cellSize.x, (height / 2) * grid.cellSize.y, -10);
         return transform.TransformPoint(localCenter);
     }
+    public UnityEngine.Vector3 GetWorldTopRightCorner()
+    {
+        Vector3 localCenter = new Vector3(width * grid.cellSize.x, height * grid.cellSize.y, -10);
+        return transform.TransformPoint(localCenter);
+    }
+    public UnityEngine.Vector3 GetWorldBottomLeftCorner()
+    {
+        Vector3 localCenter = new Vector3(0,0, -10);
+        return transform.TransformPoint(localCenter);
+    }
 
     void Update()
     {

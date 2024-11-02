@@ -4,8 +4,8 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class Drag : MonoBehaviour, IDragHandler
-
 {
+    public CameraBehavior cameraBehavior;
     public float dragSpeed;
     private Vector3 p1;
     private Vector3 camera_right;
@@ -20,9 +20,10 @@ public class Drag : MonoBehaviour, IDragHandler
     }
     public void OnDrag(PointerEventData eventData)
     {
-        //we need to call the camera controller method to constrain the camera not out of the game field bound.
-        p1 = Camera.main.transform.position - camera_right * Input.GetAxisRaw("Mouse X") * dragSpeed * Time.timeScale
-            - (camera_up + camera_forward).normalized * Input.GetAxisRaw("Mouse Y") * dragSpeed * Time.timeScale;
-        Camera.main.transform.position = p1;
+        float dragSpeedRatio = cameraBehavior.GetDragSensitivityRatio();
+        p1 = Camera.main.transform.position - camera_right * Input.GetAxisRaw("Mouse X") * dragSpeed * dragSpeedRatio
+            - (camera_up + camera_forward).normalized * Input.GetAxisRaw("Mouse Y") * dragSpeed * dragSpeedRatio;
+
+        cameraBehavior.UpdateCameraPositionAttempt(p1);
     }
 }
