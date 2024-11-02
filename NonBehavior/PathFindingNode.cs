@@ -7,10 +7,10 @@ using UnityEngine;
 public class PathFindingNode
 {
     private GridValuesContainer<PathFindingNode> gridValuesManager;
-    public int value;
     public int gCost, hCost, fCost;
     public PathFindingNode cameFrom;
     public Vector3Int cellPosition;
+    public bool isDefactNode;
     public bool isWalkable = true;
 
 
@@ -29,21 +29,21 @@ public class PathFindingNode
         cameFrom = null;
     }
 
-    public void toggleWalkable()
+    public void ToggleWalkable()
     {
         isWalkable = !isWalkable;
         gridValuesManager.TriggerGridObjectChanged(cellPosition);
     }
-
-    public void addValue()
+    public void SetWalkable(bool value)
     {
-        this.value += 1;
+        isWalkable=value;
         gridValuesManager.TriggerGridObjectChanged(cellPosition);
     }
 
     public void CalculateFCost()
     {
-        fCost = gCost + hCost;
+
+        fCost = isDefactNode? 2 * (gCost + hCost) : gCost + hCost;
     }
     public override string ToString()
     {

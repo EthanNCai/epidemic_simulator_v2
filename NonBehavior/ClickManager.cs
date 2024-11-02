@@ -18,7 +18,7 @@ public class ClickManager : MonoBehaviour
         {
             Vector3 mouseWorldPosition = UtilsClass.GetMouseWorldPosition();
             Vector3 mouseLocalPosition = transform.TransformPoint(mouseWorldPosition);
-            gridValuesAttachedBehavior.pathFindingGridValuesManager.GetGridObj(mouseLocalPosition).toggleWalkable();
+            gridValuesAttachedBehavior.pathFindingGVC.GetGridObj(mouseLocalPosition).ToggleWalkable();
         }
 
     }

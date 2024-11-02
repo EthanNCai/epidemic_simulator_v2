@@ -42,7 +42,7 @@ public class PathFinding
             if(startNode == endNode) { return; }    
 
             openList.Clear();
-            openList.Add(startNode);
+        openList.Add(startNode);
             closeList.Clear();
             for (int i = 0; i < arrayRefFromGrid.Length; i++)
             {
@@ -56,9 +56,9 @@ public class PathFinding
             startNode.CalculateFCost();
             while (openList.Count > 0)
             {
-                //PathFindingNode currentNode = openList.First();
-                PathFindingNode currentNode = GetLowestFCostNode(openList);
-            if (currentNode == endNode)
+                //PathFindingNode currentNode = openList.Min;
+            PathFindingNode currentNode = GetLowestFCostNode(openList);
+                if (currentNode == endNode)
                 {
                     CalculatePathStack(endNode, pathStack);
                     return;

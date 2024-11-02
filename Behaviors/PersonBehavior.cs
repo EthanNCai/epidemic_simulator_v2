@@ -10,6 +10,7 @@ using UnityEngine.Profiling;
 
 public class PersonBehavior : MonoBehaviour
 {
+    //private WaitForSeconds waitForSeconds = new WaitForSeconds(randomWait / 1000f);
     private GameObject personObj;
     private TimeManager timeManager;
     private GridValuesAttachedBehavior gridValuesAttachedBehavior;
@@ -34,18 +35,27 @@ public class PersonBehavior : MonoBehaviour
 
 
     //CONSTS
-    private const int TIME_TO_WORK = 3;
-    private const int TIME_TO_HOME = 16;
+    //private const int TIME_TO_WORK = 3;
+    //private const int TIME_TO_HOME = 16;
     private const float DECISION_DISTANCE = 0.1f;
-    private const int MAXIMUM_RANDOM_WAIT = 12;
+    //private const int MAXIMUM_RANDOM_WAIT = 12;
     private const float UNINFECTED_INFECTION_PROB = 0.3f;
     private const float RECOVERD_INFECTION_PROB = 0.1f;
+
+    private const int FIRST_TIME_TO_WORK = 5;
+    private const int HOME_OFFICE_MIN_DURATION = 4;
+    private const int LAST_TIME_TO_WORK = 12;
+    private const int LAST_TIME_TO_HOME = 23;
+
+
+    private float timeToWorkDynamic;
+    private float timeToHomeDynamic;
 
     // infection related
     public Infection infection = null;
     public int maxExposedToday = 0;
     public InfectionStatus infectionStatus = InfectionStatus.UnInfected;
-
+    private System.Random randomGenerator = new System.Random();
     public void init(PlaceBehavior home, PlaceBehavior office, GridValuesAttachedBehavior gridValuesAttachedBehavior, TimeManager timeManager, PeopleInfectionManager personInfectionManager, GameObject personObj,Infection infection)
     {
         this.timeManager = timeManager;
@@ -59,12 +69,12 @@ public class PersonBehavior : MonoBehaviour
 
         transform.position = home.GenerateInPlacePosition();
         pathStack = new Stack<UnityEngine.Vector3>();
-        pathFinding = new PathFinding(gridValuesAttachedBehavior.pathFindingGridValuesManager);
-        timeManager.OnHourChanged += (object sender, TimeManager.OnHourChangedEventArgs eventArgs) =>
-        {
-            //await Scheduler(eventArgs);
-            StartCoroutine(CoroutineScheduler(eventArgs));
-        };
+        pathFinding = new PathFinding(gridValuesAttachedBehavior.pathFindingGVC);
+        //timeManager.OnHourChanged += (object sender, TimeManager.OnHourChangedEventArgs eventArgs) =>
+        //{
+        //    //await Scheduler(eventArgs);
+        //    //StartCoroutine(CoroutineScheduler(eventArgs));
+        //};
         timeManager.OnShiftHourChanged += (object sender,
         TimeManager.OnShiftHourChangedEventArgs eventArgs) =>
         {
@@ -75,6 +85,9 @@ public class PersonBehavior : MonoBehaviour
             DaySummaryCalculation(eventArgs);
         };
         isInitialized = true;
+
+        // initial generation
+        (timeToWorkDynamic, timeToHomeDynamic) = GetRandomWorkSchedule();
     }
 
     
@@ -82,7 +95,9 @@ public class PersonBehavior : MonoBehaviour
     {
         if (!isInitialized) { return ; }
         currentPosition = transform.position;
-        startNode = gridValuesAttachedBehavior.pathFindingGridValuesManager.GetGridObj(currentPosition);
+        startNode = gridValuesAttachedBehavior.pathFindingGVC.GetGridObj(currentPosition);
+
+        PlainScheduler();
     }
 
 
@@ -90,6 +105,8 @@ public class PersonBehavior : MonoBehaviour
 
     private async Task MoveTo(CancellationTokenSource moveToCancelToken)
     {
+        float movingBaseSpeed = timeManager.GetDefaultMovingSpeed();
+        float speed = movingBaseSpeed + movingBaseSpeed * (float)randomGenerator.NextDouble();
         currentPlace = null;
         while (true) {
 
@@ -101,8 +118,8 @@ public class PersonBehavior : MonoBehaviour
             while (UnityEngine.Vector3.Distance(transform.position, currentTarget) > DECISION_DISTANCE)
             {
                 UnityEngine.Vector3 direction = (currentTarget - transform.position).normalized;
-                float movingSpeed = timeManager.GetCorrespondingMovingSpeed();
-                transform.position += direction * movingSpeed * Time.deltaTime;
+                
+                transform.position += direction * speed * Time.deltaTime;
                 await Task.Yield();
                 if (moveToCancelToken.IsCancellationRequested)
                 {
@@ -123,14 +140,9 @@ public class PersonBehavior : MonoBehaviour
                   pathStack.Clear();
                   Vector3 inPlaceShift = dstPlace.GenerateInPlacePosition();
                   pathStack.Push(inPlaceShift);
-                  if (currentPlace != null)
-                  {
-                      pathFinding.FindPath(currentPlace.cellPosition, dstPlace.cellPosition, pathStack);
-                  }
-                  else
-                  {
-                      pathFinding.FindPath(currentPosition, dstPlace.cellPosition, pathStack);
-                  }
+                  Vector3 startPosition = currentPlace != null ? currentPlace.cellPosition : currentPosition;
+                  pathFinding.FindPath(startPosition, dstPlace.cellPosition, pathStack);
+                  
               }
               //Profiler.EndSample();
           }
@@ -160,7 +172,7 @@ public class PersonBehavior : MonoBehaviour
         await FindPath();
         moveToCancelToken?.Cancel();
         moveToCancelToken = new CancellationTokenSource();
-        movingTask = MoveTo(moveToCancelToken);
+        if (pathStack.Count != 0) {movingTask = MoveTo(moveToCancelToken);}
     }
 
     public bool RollTheDice(float trueProb)
@@ -205,32 +217,60 @@ public class PersonBehavior : MonoBehaviour
         }
 
     }
-    async Task AsyncScheduler(TimeManager.OnHourChangedEventArgs eventArgs)
-    {
-        // Deprecated due to performance issue
-        int max = (int)(timeManager.hourDuration * MAXIMUM_RANDOM_WAIT * 1000);
-        int randomWait = UnityEngine.Random.Range(0, max);
-        await Task.Delay(randomWait);
+    //async Task AsyncScheduler(TimeManager.OnHourChangedEventArgs eventArgs)
+    //{
+    //    // Deprecated due to performance issue
+    //    int max = (int)(timeManager.hourDuration * MAXIMUM_RANDOM_WAIT * 1000);
+    //    int randomWait = UnityEngine.Random.Range(0, max);
+    //    await Task.Delay(randomWait);
 
-        switch (eventArgs.newHour)
-        {
-            case TIME_TO_WORK: GoToPlace(office); return;
-            case TIME_TO_HOME: GoToPlace(home); return;
-            default: return;
-        }
+    //    switch (eventArgs.newHour)
+    //    {
+    //        case TIME_TO_WORK: GoToPlace(office); return;
+    //        case TIME_TO_HOME: GoToPlace(home); return;
+    //        default: return;
+    //    }
+    //}
+
+    //IEnumerator CoroutineScheduler(TimeManager.OnHourChangedEventArgs eventArgs)
+    //{
+    //    //int max = (int)(timeManager.hourDuration * MAXIMUM_RANDOM_WAIT * 1000);
+    //    //int randomWait = UnityEngine.Random.Range(0, max);
+    //    yield return new WaitForSeconds(1 / 1000f);
+
+    //    switch (eventArgs.newHour)
+    //    {
+    //        case TIME_TO_WORK: GoToPlace(office); break;
+    //        case TIME_TO_HOME: GoToPlace(home); break;
+    //        default: break;
+    //    }
+    //}
+
+
+    private (float,float) GetRandomWorkSchedule()
+    {
+        float timeToWork = UnityEngine.Random.Range(
+                FIRST_TIME_TO_WORK, LAST_TIME_TO_WORK
+                );
+        float timeToHome =  UnityEngine.Random.Range(
+                timeToWork + HOME_OFFICE_MIN_DURATION, LAST_TIME_TO_HOME
+                );
+
+        return (timeToWork, timeToHome);
     }
 
-    IEnumerator CoroutineScheduler(TimeManager.OnHourChangedEventArgs eventArgs)
+    void PlainScheduler()
     {
-        int max = (int)(timeManager.hourDuration * MAXIMUM_RANDOM_WAIT * 1000);
-        int randomWait = UnityEngine.Random.Range(0, max);
-        yield return new WaitForSeconds(randomWait / 1000f);
-
-        switch (eventArgs.newHour)
+        float currentTime = timeManager.GetTime24();
+        if (currentTime > timeToWorkDynamic)
         {
-            case TIME_TO_WORK: GoToPlace(office); break;
-            case TIME_TO_HOME: GoToPlace(home); break;
-            default: break;
+            timeToWorkDynamic = float.MaxValue;
+            GoToPlace(office);
+        }
+        else if(currentTime > timeToHomeDynamic)
+        {
+            timeToHomeDynamic = float.MaxValue;
+            GoToPlace(home);
         }
 
     }
@@ -245,18 +285,15 @@ public class PersonBehavior : MonoBehaviour
                 maxExposedToday = exposedVolume;
             }
         }
-
     }
     public void DaySummaryCalculation(TimeManager.OnDayChangedEventArgs eventArgs)
     {
-
-
+        (timeToWorkDynamic,timeToHomeDynamic) = GetRandomWorkSchedule();
         GetComponent<SpriteRenderer>().color = GetDisplayColor();
 
         if (infection != null)
         {
             infection?.Progress();
-
             infectionStatus = CheckStatus();
             if (infectionStatus == InfectionStatus.Recovered)
             {
@@ -265,7 +302,6 @@ public class PersonBehavior : MonoBehaviour
                 return;
             }
         }
-
         if (infection != null) { return; }
 
         float infectionProb = GetInfectionProb(maxExposedToday);
@@ -277,7 +313,5 @@ public class PersonBehavior : MonoBehaviour
             personInfectionManager.someOneJustGotInfected(personObj);
         }
         this.maxExposedToday = 0;
-
     }
-
 }

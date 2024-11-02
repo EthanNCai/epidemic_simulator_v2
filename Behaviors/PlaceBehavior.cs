@@ -18,14 +18,14 @@ public class PlaceBehavior : MonoBehaviour
         this.height = height;
         transform.localScale = new Vector3(width,height);
         transform.position = cellPosition;
-        pathFindingNodeValuesManager = gridValuesAttachedBehavior.pathFindingGridValuesManager;
+        pathFindingNodeValuesManager = gridValuesAttachedBehavior.pathFindingGVC;
 
         for (int i = 0; i < width; i++)
         {
             for (int j = 0; j < height; j++)
             {
                 if (j == i && i != width-1) { continue; }
-                pathFindingNodeValuesManager.GetGridObj(new Vector3(cellPosition.x + i, cellPosition.y + j)).toggleWalkable();
+                pathFindingNodeValuesManager.GetGridObj(new Vector3(cellPosition.x + i, cellPosition.y + j)).ToggleWalkable();
             }
         }
 

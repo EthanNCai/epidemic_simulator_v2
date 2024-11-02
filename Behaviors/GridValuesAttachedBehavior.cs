@@ -13,12 +13,12 @@ public class GridValuesAttachedBehavior : MonoBehaviour
 
 
 
-    public GridValuesContainer<PathFindingNode> pathFindingGridValuesManager;
+    public GridValuesContainer<PathFindingNode> pathFindingGVC;
     public GridValuesContainer<VolumeVisualizeNode> virusVolumeGridValuesManager;
 
     void Awake()
     {
-        pathFindingGridValuesManager = new GridValuesContainer<PathFindingNode>(
+        pathFindingGVC = new GridValuesContainer<PathFindingNode>(
             isVisualizePathFinding,
             timeManager,
             grid,
