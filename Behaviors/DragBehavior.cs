@@ -20,10 +20,13 @@ public class Drag : MonoBehaviour, IDragHandler
     }
     public void OnDrag(PointerEventData eventData)
     {
-        float dragSpeedRatio = cameraBehavior.GetDragSensitivityRatio();
-        p1 = Camera.main.transform.position - camera_right * Input.GetAxisRaw("Mouse X") * dragSpeed * dragSpeedRatio
-            - (camera_up + camera_forward).normalized * Input.GetAxisRaw("Mouse Y") * dragSpeed * dragSpeedRatio;
+        //if (eventData.pointerEnter.layer == LayerMask.NameToLayer("HiddenUI"))
+        //{
+            float dragSpeedRatio = cameraBehavior.GetDragSensitivityRatio();
+            p1 = Camera.main.transform.position - camera_right * Input.GetAxisRaw("Mouse X") * dragSpeed * dragSpeedRatio
+                - (camera_up + camera_forward).normalized * Input.GetAxisRaw("Mouse Y") * dragSpeed * dragSpeedRatio;
 
-        cameraBehavior.UpdateCameraPositionAttempt(p1);
+            cameraBehavior.UpdateCameraPositionAttempt(p1);
+        //}
     }
 }

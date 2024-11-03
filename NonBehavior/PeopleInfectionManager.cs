@@ -31,7 +31,7 @@ public class PeopleInfectionManager : MonoBehaviour
             int volumeToSet = Mathf.Max(tileVirusVolume.virusVolume, personBehavior.infection.CheckVirusVolume());
             tileVirusVolume.SetVirusVolume(volumeToSet);
 
-            pathFindingNode.isDefactNode = volumeToSet > DEFACT_VOLUME_GATE ? true: false;
+            //pathFindingNode.isDefactNode = volumeToSet > DEFACT_VOLUME_GATE ? true: false;
         }
     }
 

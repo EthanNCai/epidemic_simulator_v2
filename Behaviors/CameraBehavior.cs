@@ -38,7 +38,7 @@ public class CameraBehavior : MonoBehaviour
 
         // handel zoom-in and zoom-out
         float wheel = Input.GetAxis("Mouse ScrollWheel");
-        float expectedCamSize = GetComponent<Camera>().orthographicSize + wheel * -4000 * Time.deltaTime;
+        float expectedCamSize = GetComponent<Camera>().orthographicSize + wheel  * -20;
 
         GetComponent<Camera>().orthographicSize =
 
