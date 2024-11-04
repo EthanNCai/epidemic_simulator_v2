@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class PersonSelectiobManager : MonoBehaviour, IPointerEnterHandler,IPointerExitHandler, IPointerClickHandler { 
+public class PersonSelectionManager : MonoBehaviour, IPointerEnterHandler,IPointerExitHandler, IPointerClickHandler { 
 
     private Camera mainCamera;
     private SpriteRenderer spriteRenderer; 
@@ -55,12 +55,17 @@ public class PersonSelectiobManager : MonoBehaviour, IPointerEnterHandler,IPoint
 
     private void SendInfosToUI()
     {
-        IDTextTMP.text = "6";
-        InfectionStateTMP.text = personBehavior.infectionStatus.ToString();
-        SocialStateTMP.text = "meow";
-
-
+        IDTextTMP.text = personBehavior._name;
+        InfectionStateTMP.text = Infection.GetInfectionStatusDescriber(personBehavior.infectionStatus);
+        SocialStateTMP.text = PersonBehavior.GetSocialStatusDescriber(personBehavior);
     }
+
+    public void Unselect()
+    {
+        isSelected = false;
+        StopHightlighted();
+    }
+
     public void OnPointerEnter(PointerEventData eventData)
     {
         isHover = true;

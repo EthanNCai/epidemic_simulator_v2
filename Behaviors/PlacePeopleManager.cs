@@ -14,15 +14,15 @@ public class PlacePeopleManager : MonoBehaviour
     private List<Place> homes_debug =
         new List<Place> {
             //new Place(new UnityEngine.Vector3(2, 2),1,1),
-            new Place(new UnityEngine.Vector3(10, 10),2,2),
-            new Place(new UnityEngine.Vector3(4, 10),2,2),
-            new Place(new UnityEngine.Vector3(11, 5),2,2),
+            new Place(new UnityEngine.Vector3(10, 10),PlaceType.Home,2,2),
+            new Place(new UnityEngine.Vector3(4, 10),PlaceType.Home,2,2),
+            new Place(new UnityEngine.Vector3(11, 5),PlaceType.Home,2,2),
         };
     private List<Place> offices_debug =
         new List<Place> {
-            new Place(new UnityEngine.Vector3(12, 3),2,2),
-            new Place(new UnityEngine.Vector3(20, 10),3,3),
-            new Place(new UnityEngine.Vector3(6, 6),2,2),
+            new Place(new UnityEngine.Vector3(12, 3),PlaceType.Office,2,2),
+            new Place(new UnityEngine.Vector3(20, 10),PlaceType.Office,3,3),
+            new Place(new UnityEngine.Vector3(6, 6),PlaceType.Office,2,2),
             //new Place(new Vector3(35, 4),2,2),
         };
     private List<PlaceBehavior> homes = new List<PlaceBehavior>();
@@ -39,7 +39,8 @@ public class PlacePeopleManager : MonoBehaviour
                 offices_debug[i].cellPosition,
                 offices_debug[i].width,
                 offices_debug[i].height,
-                gridValuesAttachedBehavior
+                gridValuesAttachedBehavior,
+                offices_debug[i].placeType
                 );
             offices.Add(newBehavior);
         }
@@ -51,7 +52,8 @@ public class PlacePeopleManager : MonoBehaviour
                 homes_debug[j].cellPosition,
                 homes_debug[j].width,
                 homes_debug[j].height,
-                gridValuesAttachedBehavior
+                gridValuesAttachedBehavior,
+                homes_debug[j].placeType
                 );
             homes.Add(newBehavior);
         }

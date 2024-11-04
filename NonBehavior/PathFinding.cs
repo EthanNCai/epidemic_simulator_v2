@@ -87,8 +87,8 @@ public class PathFinding
                     }
                 }
             }
-        Debug.Log("startLocalPos" + startLocalPos.ToString());
-        Debug.Log("endLocalPos" + endLocalPos.ToString());
+        //Debug.Log("startLocalPos" + startLocalPos.ToString());
+        //Debug.Log("endLocalPos" + endLocalPos.ToString());
         Debug.LogWarning("No path Found");
         return;
         

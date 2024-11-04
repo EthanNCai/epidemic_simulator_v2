@@ -22,7 +22,7 @@ public class Drag : MonoBehaviour, IDragHandler
     {
         //if (eventData.pointerEnter.layer == LayerMask.NameToLayer("HiddenUI"))
         //{
-            float dragSpeedRatio = cameraBehavior.GetDragSensitivityRatio();
+            float dragSpeedRatio = cameraBehavior.GetCameraRatio();
             p1 = Camera.main.transform.position - camera_right * Input.GetAxisRaw("Mouse X") * dragSpeed * dragSpeedRatio
                 - (camera_up + camera_forward).normalized * Input.GetAxisRaw("Mouse Y") * dragSpeed * dragSpeedRatio;
 

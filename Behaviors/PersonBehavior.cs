@@ -8,6 +8,18 @@ using UnityEditor.Tilemaps;
 using UnityEngine;
 using UnityEngine.Profiling;
 
+public enum SocialStatus
+{
+    Homing,
+    Moving,
+    Working,
+    Shopping,
+    Isolated,
+    InHospital,
+    Testing,
+    BLANK,
+}
+
 public class PersonBehavior : MonoBehaviour
 {
     //private WaitForSeconds waitForSeconds = new WaitForSeconds(randomWait / 1000f);
@@ -31,14 +43,14 @@ public class PersonBehavior : MonoBehaviour
 
 
     PathFindingNode startNode;
+
+
+
     private bool isInitialized =  false;
-
-
-    //CONSTS
-    //private const int TIME_TO_WORK = 3;
-    //private const int TIME_TO_HOME = 16;
+    public string _name;
+    static string[] givenNames = new string[] { "²Ì", "Î¤", "Àî", "ÎÌ", "Ö£", "Íõ" };
+    static string[] firstNames = new string[] { "¿¡Ö¾", "ÓÀ¼Ñ", "Ñ©æÃ", "Í¦", "ÓîÌÎ", "Óî†´", "ÐÄâù" };
     private const float DECISION_DISTANCE = 0.1f;
-    //private const int MAXIMUM_RANDOM_WAIT = 12;
     private const float UNINFECTED_INFECTION_PROB = 0.3f;
     private const float RECOVERD_INFECTION_PROB = 0.1f;
 
@@ -47,7 +59,9 @@ public class PersonBehavior : MonoBehaviour
     private const int LAST_TIME_TO_WORK = 12;
     private const int LAST_TIME_TO_HOME = 23;
 
-
+    // commuting related
+    public SocialStatus socialStatus;
+    //public PlaceType dstType;
     private float timeToWorkDynamic;
     private float timeToHomeDynamic;
 
@@ -58,6 +72,7 @@ public class PersonBehavior : MonoBehaviour
     private System.Random randomGenerator = new System.Random();
     public void init(PlaceBehavior home, PlaceBehavior office, GridValuesAttachedBehavior gridValuesAttachedBehavior, TimeManager timeManager, PeopleInfectionManager personInfectionManager, GameObject personObj,Infection infection)
     {
+        this._name = NameGenerator();
         this.timeManager = timeManager;
         this.home = home;
         this.office = office;
@@ -101,10 +116,24 @@ public class PersonBehavior : MonoBehaviour
         PlainScheduler();
     }
 
+    static public string[] SocialStatusTexts = new string[] { "ÕýÇ°Íù", "ÔÚ¼Ò", "¹¤×÷ÖÐ", "ÒÑÈ¬Óú" };
+    static public string GetSocialStatusDescriber(PersonBehavior personBehavior)
+    {
+        SocialStatus socialStatus = personBehavior.socialStatus;
 
-    
+        switch (socialStatus)
+        {
+            case SocialStatus.Moving: {
+                    return SocialStatusTexts[0] + Place.GetPlaceTypeDescriber(personBehavior.dstPlace.placeType); }
+            case SocialStatus.Homing: { 
+                    return SocialStatusTexts[1]; }
+            case SocialStatus.Working: { 
+                    return SocialStatusTexts[2]; }
+            default: { return "´íÎó"; }
+        }
+    }
 
-    private async Task MoveTo(CancellationTokenSource moveToCancelToken)
+    private async Task MoveTo(CancellationTokenSource moveToCancelToken, SocialStatus delaredVSocialStatusDst)
     {
         float movingBaseSpeed = timeManager.GetDefaultMovingSpeed();
         float speed = movingBaseSpeed + movingBaseSpeed * (float)randomGenerator.NextDouble();
@@ -113,6 +142,13 @@ public class PersonBehavior : MonoBehaviour
 
             if (pathStack.Count == 0) {
                 currentPlace = dstPlace;
+                if (delaredVSocialStatusDst != SocialStatus.BLANK) 
+                { 
+                    socialStatus = delaredVSocialStatusDst;
+                } else
+                {
+                    socialStatus = dstPlace.vSocialStatusDst;
+                }
                 break;
             }
             UnityEngine.Vector3 currentTarget = pathStack.Pop();
@@ -167,13 +203,18 @@ public class PersonBehavior : MonoBehaviour
         }
     }
 
-    private async void GoToPlace(PlaceBehavior placeToGo)
+    private async void GoToPlace(PlaceBehavior placeToGo, SocialStatus delaredVSocialStatusDst = SocialStatus.BLANK)
     {
+        // set Status
+        //dstType = placeToGo.placeType;
+        socialStatus = SocialStatus.Moving;
+
+        // let's go ~
         dstPlace = placeToGo;
         await FindPath();
         moveToCancelToken?.Cancel();
         moveToCancelToken = new CancellationTokenSource();
-        if (pathStack.Count != 0) {movingTask = MoveTo(moveToCancelToken);}
+        if (pathStack.Count != 0) {movingTask = MoveTo(moveToCancelToken, delaredVSocialStatusDst);}
     }
 
     public bool RollTheDice(float trueProb)
@@ -218,36 +259,13 @@ public class PersonBehavior : MonoBehaviour
         }
 
     }
-    //async Task AsyncScheduler(TimeManager.OnHourChangedEventArgs eventArgs)
-    //{
-    //    // Deprecated due to performance issue
-    //    int max = (int)(timeManager.hourDuration * MAXIMUM_RANDOM_WAIT * 1000);
-    //    int randomWait = UnityEngine.Random.Range(0, max);
-    //    await Task.Delay(randomWait);
-
-    //    switch (eventArgs.newHour)
-    //    {
-    //        case TIME_TO_WORK: GoToPlace(office); return;
-    //        case TIME_TO_HOME: GoToPlace(home); return;
-    //        default: return;
-    //    }
-    //}
-
-    //IEnumerator CoroutineScheduler(TimeManager.OnHourChangedEventArgs eventArgs)
-    //{
-    //    //int max = (int)(timeManager.hourDuration * MAXIMUM_RANDOM_WAIT * 1000);
-    //    //int randomWait = UnityEngine.Random.Range(0, max);
-    //    yield return new WaitForSeconds(1 / 1000f);
-
-    //    switch (eventArgs.newHour)
-    //    {
-    //        case TIME_TO_WORK: GoToPlace(office); break;
-    //        case TIME_TO_HOME: GoToPlace(home); break;
-    //        default: break;
-    //    }
-    //}
 
 
+    private string NameGenerator()
+    {
+        return givenNames[randomGenerator.Next(givenNames.Length)] +
+            firstNames[randomGenerator.Next(firstNames.Length)];
+    }
     private (float,float) GetRandomWorkSchedule()
     {
         float timeToWork = UnityEngine.Random.Range(
@@ -266,11 +284,13 @@ public class PersonBehavior : MonoBehaviour
         if (currentTime > timeToWorkDynamic)
         {
             timeToWorkDynamic = float.MaxValue;
+            
             GoToPlace(office);
         }
         else if(currentTime > timeToHomeDynamic)
         {
             timeToHomeDynamic = float.MaxValue;
+            
             GoToPlace(home);
         }
 

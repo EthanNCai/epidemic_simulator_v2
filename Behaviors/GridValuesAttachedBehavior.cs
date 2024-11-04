@@ -10,9 +10,6 @@ public class GridValuesAttachedBehavior : MonoBehaviour
     public GameObject virusVolumeTilePrefab;
     public bool isVisualizePathFinding;
     public bool isVisualizeVolume;
-
-
-
     public GridValuesContainer<PathFindingNode> pathFindingGVC;
     public GridValuesContainer<VolumeVisualizeNode> virusVolumeGridValuesManager;
 

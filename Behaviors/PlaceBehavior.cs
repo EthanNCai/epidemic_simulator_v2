@@ -9,10 +9,14 @@ public class PlaceBehavior : MonoBehaviour
     public int width, height;
     private System.Random randomGenerator = new System.Random();
     GridValuesContainer<PathFindingNode> pathFindingNodeValuesManager;
+    public PlaceType placeType;
+    public SocialStatus vSocialStatusDst;
+    
 
-    public void init(Vector3 cellPosition, int width, int height, GridValuesAttachedBehavior gridValuesAttachedBehavior)
+    public void init(Vector3 cellPosition, int width, int height, GridValuesAttachedBehavior gridValuesAttachedBehavior,PlaceType placeType)
     {
-
+        this.placeType = placeType;
+        this.vSocialStatusDst = Place.VSocialStatusDstInferFromPlaceType(placeType);
         this.cellPosition = cellPosition;
         this.width = width;
         this.height = height;
@@ -47,4 +51,5 @@ public class PlaceBehavior : MonoBehaviour
         cellPosition.x + (float)(width * randomGenerator.NextDouble()),
         cellPosition.y + (float)(height * randomGenerator.NextDouble()));
     }
+    
 }

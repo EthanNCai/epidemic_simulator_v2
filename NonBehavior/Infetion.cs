@@ -9,7 +9,9 @@ public enum InfectionStatus
     Period2,
     Recovered,
     UnInfected,
+
 }
+
 
 
 public class Infection
@@ -22,6 +24,19 @@ public class Infection
     private int period2;
     private int period1DaysLeft;
     private int period2DaysLeft;
+
+    static public string[] InfectionStatusTexts = new string[] { "潜伏期", "发病期", "未感染过" , "已痊愈" };
+    static public string GetInfectionStatusDescriber(InfectionStatus target)
+    {
+        switch (target)
+        {
+            case InfectionStatus.Period1: { return InfectionStatusTexts[0]; }
+            case InfectionStatus.Period2: { return InfectionStatusTexts[1]; }
+            case InfectionStatus.UnInfected: { return InfectionStatusTexts[2]; }
+            case InfectionStatus.Recovered: { return InfectionStatusTexts[3]; }
+            default: { return "错误"; }
+        }
+    }
 
     private int MapValue(int value, int fromMin, int fromMax, int toMin, int toMax)
     {

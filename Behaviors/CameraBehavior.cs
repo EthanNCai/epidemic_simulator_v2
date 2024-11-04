@@ -13,7 +13,7 @@ public class CameraBehavior : MonoBehaviour
     private const int MAX_ZOOM_OUT = 9;
     private const int MOUSE_SPEED = 100;
     private const float MARGIN = 1;
-    private const float DEFAULT_CAMERA_SIZE = 8;
+    public const float DEFAULT_CAMERA_SIZE = 8;
     private Vector3 bottomLeft;
     private Vector3 topRight;
     
@@ -46,7 +46,7 @@ public class CameraBehavior : MonoBehaviour
 
     }
 
-    public float GetDragSensitivityRatio()
+    public float GetCameraRatio()
     {
         return GetComponent<Camera>().orthographicSize / DEFAULT_CAMERA_SIZE;
     }
