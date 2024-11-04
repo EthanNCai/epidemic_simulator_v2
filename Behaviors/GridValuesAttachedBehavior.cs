@@ -59,7 +59,6 @@ public class GridValuesAttachedBehavior : MonoBehaviour
         Vector3 localCenter = new Vector3(0,0, -10);
         return transform.TransformPoint(localCenter);
     }
-
     void Update()
     {
         

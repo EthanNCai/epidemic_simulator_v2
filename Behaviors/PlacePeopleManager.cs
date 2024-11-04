@@ -8,6 +8,7 @@ public class PlacePeopleManager : MonoBehaviour
     public PeopleInfectionManager personInfectionManager;
     public GameObject placePrefab;
     public GameObject personPrefab;
+    //public Camera mainCamera;
     
     public TimeManager timeManager;
     private List<Place> homes_debug =
@@ -72,6 +73,9 @@ public class PlacePeopleManager : MonoBehaviour
                         newPerson,
                         null
                         );
+                    //newPerson.GetComponent<HoverColorChanger>().init(
+                    //    Camera.main
+                    //    );
                     persons.Add(newPerson);
                 }
             }

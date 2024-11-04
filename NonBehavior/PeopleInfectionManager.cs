@@ -30,8 +30,6 @@ public class PeopleInfectionManager : MonoBehaviour
             PathFindingNode pathFindingNode = gridValuesAttachedBehavior.pathFindingGVC.GetGridObj(personObj.transform.position);
             int volumeToSet = Mathf.Max(tileVirusVolume.virusVolume, personBehavior.infection.CheckVirusVolume());
             tileVirusVolume.SetVirusVolume(volumeToSet);
-
-            //pathFindingNode.isDefactNode = volumeToSet > DEFACT_VOLUME_GATE ? true: false;
         }
     }
 

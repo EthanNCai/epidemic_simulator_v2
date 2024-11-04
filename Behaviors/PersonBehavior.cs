@@ -88,6 +88,7 @@ public class PersonBehavior : MonoBehaviour
 
         // initial generation
         (timeToWorkDynamic, timeToHomeDynamic) = GetRandomWorkSchedule();
+        
     }
 
     
