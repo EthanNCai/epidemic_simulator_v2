@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Unity.VisualScripting;
 using UnityEditor.Tilemaps;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Profiling;
 
 public enum SocialStatus
@@ -22,7 +23,8 @@ public enum SocialStatus
 
 public class PersonBehavior : MonoBehaviour
 {
-    //private WaitForSeconds waitForSeconds = new WaitForSeconds(randomWait / 1000f);
+    private int wage = 1;
+    private RevenueManager revenueManager;
     private GameObject personObj;
     private TimeManager timeManager;
     private GridValuesAttachedBehavior gridValuesAttachedBehavior;
@@ -70,8 +72,10 @@ public class PersonBehavior : MonoBehaviour
     public int maxExposedToday = 0;
     public InfectionStatus infectionStatus = InfectionStatus.UnInfected;
     private System.Random randomGenerator = new System.Random();
-    public void init(PlaceBehavior home, PlaceBehavior office, GridValuesAttachedBehavior gridValuesAttachedBehavior, TimeManager timeManager, PeopleInfectionManager personInfectionManager, GameObject personObj,Infection infection)
+    public void init(PlaceBehavior home, PlaceBehavior office, GridValuesAttachedBehavior gridValuesAttachedBehavior, TimeManager timeManager, PeopleInfectionManager personInfectionManager, GameObject personObj,Infection infection,
+        RevenueManager revenueManager)
     {
+        this.revenueManager = revenueManager;
         this._name = NameGenerator();
         this.timeManager = timeManager;
         this.home = home;
@@ -83,7 +87,7 @@ public class PersonBehavior : MonoBehaviour
         this.currentPlace = home;
 
         transform.position = home.GenerateInPlacePosition();
-        pathStack = new Stack<UnityEngine.Vector3>();
+        pathStack = new Stack<Vector3>();
         pathFinding = new PathFinding(gridValuesAttachedBehavior.pathFindingGVC);
         //timeManager.OnHourChanged += (object sender, TimeManager.OnHourChangedEventArgs eventArgs) =>
         //{
@@ -124,7 +128,7 @@ public class PersonBehavior : MonoBehaviour
         switch (socialStatus)
         {
             case SocialStatus.Moving: {
-                    return SocialStatusTexts[0] + Place.GetPlaceTypeDescriber(personBehavior.dstPlace.placeType); }
+                    return SocialStatusTexts[0] + PlacePrototype.GetPlaceTypeDescriber(personBehavior.dstPlace.placeType); }
             case SocialStatus.Homing: { 
                     return SocialStatusTexts[1]; }
             case SocialStatus.Working: { 
@@ -257,9 +261,7 @@ public class PersonBehavior : MonoBehaviour
         {
             return infection.CheckStatus();
         }
-
     }
-
 
     private string NameGenerator()
     {
@@ -274,7 +276,6 @@ public class PersonBehavior : MonoBehaviour
         float timeToHome =  UnityEngine.Random.Range(
                 timeToWork + HOME_OFFICE_MIN_DURATION, LAST_TIME_TO_HOME
                 );
-
         return (timeToWork, timeToHome);
     }
 
@@ -298,6 +299,11 @@ public class PersonBehavior : MonoBehaviour
 
     public void HourSummaryCalculation(TimeManager.OnShiftHourChangedEventArgs eventArgs)
     {
+        if (currentPlace?.placeType == PlaceType.Office)
+        {
+            revenueManager.PayTaxes(wage);
+        }
+
         if (infection == null)
         {
             int exposedVolume = personInfectionManager.CheckExposeVolumeHere(currentPosition);
@@ -312,18 +318,29 @@ public class PersonBehavior : MonoBehaviour
         (timeToWorkDynamic,timeToHomeDynamic) = GetRandomWorkSchedule();
         GetComponent<SpriteRenderer>().color = GetDisplayColor();
 
+        // BLOCK A : We Handle cases if you are already got infected
         if (infection != null)
         {
-            infection?.Progress();
+            bool isStageSwitch = infection.ProgressAndReturnIsNextStage();
             infectionStatus = CheckStatus();
+          
             if (infectionStatus == InfectionStatus.Recovered)
             {
                 personInfectionManager.someOneJustRecoverd(personObj);
                 infection = null;
                 return;
+            }else if (isStageSwitch)
+            {
+                personInfectionManager.
+                    someOneJustProgressHisInfection(personObj);
+                return;
             }
+            return;
         }
-        if (infection != null) { return; }
+
+        // all infected persons should already got returned
+        Assert.IsTrue(infection==null);
+        // BLOCK B : We Handle cases if you are a clean, uninfected one.
 
         float infectionProb = GetInfectionProb(maxExposedToday);
         bool isInfected = RollTheDice(infectionProb);

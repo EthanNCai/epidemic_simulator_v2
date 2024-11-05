@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class CanvasBodyBehavior : MonoBehaviour
@@ -42,7 +43,9 @@ public class CanvasBodyBehavior : MonoBehaviour
     {
         Vector3 parentPosition = transform.parent.position;
         Vector3 viewportPosition = mainCamera.WorldToViewportPoint(parentPosition);
-        //transform = mainCamera.orthographicSize/DEFAULT_CAMERA_SIZE
+
+        float scaleFactor = math.sqrt( mainCamera.orthographicSize / DEFAULT_CAMERA_SIZE);
+        targetRectTransform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
         DetectPosition(viewportPosition,true);
     }
 
