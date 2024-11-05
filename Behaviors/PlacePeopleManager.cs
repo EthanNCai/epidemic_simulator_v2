@@ -46,6 +46,7 @@ public class PlacePeopleManager : MonoBehaviour
 
     // VARIABLES -> building process - related
     GameObject placePreviewingObj = null;
+    Camera mainCamera;
     // ***********************
 
     void Start()
@@ -112,6 +113,8 @@ public class PlacePeopleManager : MonoBehaviour
         personInfectionManager.someOneJustGotInfected(newPerson_);
 
 
+        mainCamera = Camera.main;
+
         //Event subscribetion -> building related
 
         BuidableBehavior.OnBuildingPreviewStart += (object sender,
@@ -158,7 +161,16 @@ public class PlacePeopleManager : MonoBehaviour
     {
         if (placePreviewingObj != null)
         {
-            placePreviewingObj.transform.position = Input.mousePosition;
+            Vector3 mouseScreenPosition = Input.mousePosition;
+            //mouseScreenPosition.z = 0;
+            Vector3 mouseWorldPosition = mainCamera.ScreenToWorldPoint(mouseScreenPosition);
+            
+            Vector3 mouseGridLocalPosition = transform.InverseTransformPoint(mouseWorldPosition);
+            mouseGridLocalPosition.z = 0;
+            Vector3 mouseCellPosition = GridValuesContainer<PathFindingNode>.localToCell(mouseGridLocalPosition);
+            placePreviewingObj.transform.position = mouseCellPosition;
+            
+            Debug.Log(mouseGridLocalPosition);
         }
         //Debug.Log(Input.mousePosition.ToString());
     }
