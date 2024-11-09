@@ -7,56 +7,83 @@ using UnityEngine;
 
 public class VolumeVisualizeNode
 {
-    //refs 
-    TimeManager timeManager;
-    //public static GameObject VirusVolumeTilePrefab;
-    private GameObject virusVolumeTile;
-    GridValuesContainer<VolumeVisualizeNode> virusVolumeGridValuesManager;
-
-    //cell related
+    // GENERAL 
+    private TimeManager timeManager;
+    private GridValuesContainer<VolumeVisualizeNode> volumeGVC;
     Vector3Int cellPosition;
 
-    // this value should between 0 - 100 integer
-    public int virusVolume = 0;
-    // this value should between 0 - 1 float
-    float selfCleaningRate = 0.8f;
+    //VIRUS VOLUME PART
 
-    public VolumeVisualizeNode(GridValuesContainer<VolumeVisualizeNode> virusVolumeGridValuesManager, Vector3Int cellPosition, TimeManager timeManager)
+    public int virusVolume = 0;     // this value should between 0 - 100 integer
+    float VIRUS_SELF_CLEAN_RATE = 0.95f; // this value should between 0 - 1 float
+    private GameObject virusVisualizeTile;
+
+
+    // POPULARITY VOLUME PART
+    public int popuVolume = 0;     // this value should between 0 - 100 integer
+    float POPU_SELF_CLEAN_RATE = 0.80f; // this value should between 0 - 1 float
+    private GameObject popuVisualizeTile;
+
+
+    //cell related
+
+    public VolumeVisualizeNode(GridValuesContainer<VolumeVisualizeNode> volumeGVC, Vector3Int cellPosition, TimeManager timeManager)
     {
-        this.virusVolumeGridValuesManager = virusVolumeGridValuesManager;
+        this.volumeGVC = volumeGVC;
         this.cellPosition = cellPosition;
         this.timeManager = timeManager;
 
 
-        timeManager.OnShiftHourChanged += (object sender, TimeManager.OnShiftHourChangedEventArgs eventArgs) =>
+        timeManager.OnHourChanged += (object sender, TimeManager.OnHourChangedEventArgs eventArgs) =>
         {
-            SelfCleaning();
+            popuVolumeSelfCleaning();
+            virusVolumeSelfCleaning();
         };
 
     }
-    public void SetVirusVolumeTile(GameObject virusVolumeTile)
+    public void SetVirusVolumeTile(GameObject virusVisualizeTile)
     {
-        this.virusVolumeTile = virusVolumeTile;
-        this.virusVolumeTile.transform.position = this.cellPosition + new UnityEngine.Vector3(0.5f, 0.5f);
+        this.virusVisualizeTile = virusVisualizeTile;
+        this.virusVisualizeTile.transform.position = this.cellPosition + new UnityEngine.Vector3(0.5f, 0.5f);
     }
-
-    private void SelfCleaning()
+    public void SetPopuVolumeTile(GameObject popuVisualizeTile)
     {
-        virusVolumeTile.GetComponent<SpriteRenderer>().color = new Color(1, 0, 0, virusVolume / 150f);
-
-        if (virusVolume == 0)
-        {
-            return;
-        }
-        virusVolume = (int)(virusVolume * selfCleaningRate);
-        virusVolumeGridValuesManager.TriggerGridObjectChanged(cellPosition);
+        this.popuVisualizeTile = popuVisualizeTile;
+        this.popuVisualizeTile.transform.position = this.cellPosition + new UnityEngine.Vector3(0.5f, 0.5f);
     }
-    
     public void SetVirusVolume(int newVolume)
     {
         virusVolume = math.max(virusVolume, newVolume);
-        virusVolumeGridValuesManager.TriggerGridObjectChanged(cellPosition);
+        volumeGVC.TriggerGridObjectChanged(cellPosition);
     }
+    public void SetPopuVolume(int newVolume)
+    {
+        popuVolume = newVolume;
+        volumeGVC.TriggerGridObjectChanged(cellPosition);
+    }
+    private void virusVolumeSelfCleaning()
+    {
+        // update color visualization
+        virusVisualizeTile.GetComponent<SpriteRenderer>().color = new Color(1, 0, 0, virusVolume / 150f);
+
+        if (virusVolume == 0){return;} // cleared
+        
+        virusVolume = (int)(virusVolume * VIRUS_SELF_CLEAN_RATE);
+        volumeGVC.TriggerGridObjectChanged(cellPosition);
+    }
+    //private void 
+    private void popuVolumeSelfCleaning()
+    {
+        // update color visualization
+        popuVisualizeTile.GetComponent<SpriteRenderer>().color = new Color(0, 1, 0, math.min(popuVolume / 10f,1f));
+
+        if (popuVolume == 0) { return; } // cleared
+
+        popuVolume = (int)(popuVolume * POPU_SELF_CLEAN_RATE);
+        volumeGVC.TriggerGridObjectChanged(cellPosition);
+    }
+
+    
     public override string ToString()
     {
         return virusVolume.ToString();

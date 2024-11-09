@@ -5,14 +5,27 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.PlayerLoop;
 
+public enum PlaceType
+{
+    Home,
+    Office,
+    Hosipital,
+    TestField,
+    IsolationField,
+}
+
+
 public class PlaceBehavior : MonoBehaviour
 {
+
     static int SIZE_TO_CAPACITY_RATIO = 5;
+
 
 
     public UnityEngine.Vector3 cellPosition;
     public Vector3 size;
     private System.Random randomGenerator = new System.Random();
+
     GridValuesContainer<PathFindingNode> pathFindingGVC;
     public GridValuesContainer<PlaceClaranceNode> placeClaranceGVC;
     public PlaceType placeType;
@@ -37,9 +50,11 @@ public class PlaceBehavior : MonoBehaviour
         placeClaranceGVC = gridValuesAttacher.placeClaranceGVC;
         capacity = (int)(size.x * size.y) * SIZE_TO_CAPACITY_RATIO;
         for (int i = 0; i < size.x; i++)
+
         {
             for (int j = 0; j < size.y; j++)
             {
+
                 // set built flag for clarance calculation
                 placeClaranceGVC.GetGridObj(new Vector3(cellPosition.x + i, cellPosition.y + j)).SetBuilt(true);
 
@@ -49,9 +64,18 @@ public class PlaceBehavior : MonoBehaviour
                     pathFindingGVC.GetGridObj(new Vector3(cellPosition.x + i, cellPosition.y + j)).SetWalkable(false);
                 }
 
+
                 
             }
         }
+        Color targetColor = Color.white;
+        switch (placeType)
+        {
+            case PlaceType.Office: { targetColor = officeColor; break; }
+            case PlaceType.Home: { targetColor = homeColor; break; }
+        }
+        Transform childTransform = transform.GetChild(0);
+        childTransform.GetComponent<SpriteRenderer>().color = targetColor;
 
     }
 

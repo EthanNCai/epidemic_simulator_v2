@@ -13,7 +13,9 @@ public class PathFindingNode
     public Vector3Int cellPosition;
     //public bool isDefactNode;
     public bool isWalkable = true;
+
     private System.Random randomGenerator = new System.Random();
+
 
     public PathFindingNode(GridValuesContainer<PathFindingNode> gridValuesManager, Vector3Int cellPosition, TimeManager timeManager)
     {
@@ -22,6 +24,7 @@ public class PathFindingNode
         this.gCost = int.MaxValue;
         this.CalculateFCost();
         this.cameFrom = null;
+        //this.isPlaceUpHead = false;
     }
     public void ResetSelf()
     {
@@ -35,7 +38,9 @@ public class PathFindingNode
         isWalkable = !isWalkable;
         gridValuesManager.TriggerGridObjectChanged(cellPosition);
     }
+
     public void SetWalkable(bool value)
+
     {
         isWalkable=value;
         gridValuesManager.TriggerGridObjectChanged(cellPosition);
@@ -47,7 +52,9 @@ public class PathFindingNode
     }
     public void CalculateFCost()
     {
+
         fCost = FCostJitter(gCost + hCost);
+
     }
     public override string ToString()
     {

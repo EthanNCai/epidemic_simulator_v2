@@ -52,8 +52,8 @@ public class PersonBehavior : MonoBehaviour
 
     private bool isInitialized =  false;
     public string _name;
-    static string[] givenNames = new string[] { "²Ì", "Î¤", "Àî", "ÎÌ", "Ö£", "Íõ" };
-    static string[] firstNames = new string[] { "¿¡Ö¾", "ÓÀ¼Ñ", "Ñ©æÃ", "Í¦", "ÓîÌÎ", "Óî", "ÐÄâù" };
+    static string[] givenNames = new string[] { "ï¿½ï¿½", "Î¤", "ï¿½ï¿½", "ï¿½ï¿½", "Ö£", "ï¿½ï¿½" };
+    static string[] firstNames = new string[] { "ï¿½ï¿½Ö¾", "ï¿½ï¿½ï¿½ï¿½", "Ñ©ï¿½ï¿½", "Í¦", "ï¿½ï¿½ï¿½ï¿½", "ï¿½ï¿½", "ï¿½ï¿½ï¿½ï¿½" };
     private const float DECISION_DISTANCE = 0.1f;
     private const float UNINFECTED_INFECTION_PROB = 0.3f;
     private const float RECOVERD_INFECTION_PROB = 0.1f;
@@ -78,8 +78,10 @@ public class PersonBehavior : MonoBehaviour
     public int maxExposedToday = 0;
     public InfectionStatus infectionStatus = InfectionStatus.UnInfected;
     private System.Random randomGenerator = new System.Random();
+
     public void init(PlaceBehavior home, PlaceBehavior office, GridValuesAttachedBehavior gridValuesAttachedBehavior, TimeManager timeManager, PeopleInfectionManager personInfectionManager, GameObject personObj,Infection infection,
         RevenueManager revenueManager, List<PlaceBehavior> clinics)
+
     {
         this.clinics = clinics;
         this.revenueManager = revenueManager;
@@ -94,9 +96,11 @@ public class PersonBehavior : MonoBehaviour
         this.currentPlace = home;
 
         transform.position = home.GenerateInPlacePosition();
+
         pathStack = new Stack<Vector3>();
         pathFinding = new PathFinding(gridValuesAttachedBehavior.pathFindingGVC);
  
+
         timeManager.OnShiftHourChanged += (object sender,
         TimeManager.OnShiftHourChangedEventArgs eventArgs) =>
         {
@@ -120,10 +124,12 @@ public class PersonBehavior : MonoBehaviour
         currentPosition = transform.position;
         startNode = gridValuesAttachedBehavior.pathFindingGVC.GetGridObj(currentPosition);
 
+
         PlainScheduler();
+
     }
 
-    static public string[] SocialStatusTexts = new string[] { "ÕýÇ°Íù", "ÔÚ¼Ò", "¹¤×÷ÖÐ", "×¡ÔºÖÐ" };
+    static public string[] SocialStatusTexts = new string[] { "ï¿½ï¿½Ç°ï¿½ï¿½", "ï¿½Ú¼ï¿½", "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½", "×¡Ôºï¿½ï¿½" };
     static public string GetSocialStatusDescriber(PersonBehavior personBehavior)
     {
         SocialStatus socialStatus = personBehavior.socialStatus;
@@ -140,14 +146,16 @@ public class PersonBehavior : MonoBehaviour
                 {
                     return SocialStatusTexts[3];
                 }
-            default: { return "´íÎó"; }
+            default: { return "ï¿½ï¿½ï¿½ï¿½"; }
         }
     }
 
     private async Task MoveTo(CancellationTokenSource moveToCancelToken, SocialStatus delaredVSocialStatusDst)
     {
+
         float movingBaseSpeed = timeManager.GetDefaultMovingSpeed();
         float speed = movingBaseSpeed + movingBaseSpeed * (float)randomGenerator.NextDouble();
+
         currentPlace = null;
         while (true) {
 
@@ -174,7 +182,9 @@ public class PersonBehavior : MonoBehaviour
             {
                 UnityEngine.Vector3 direction = (currentTarget - transform.position).normalized;
                 
+
                 transform.position += direction * speed * Time.deltaTime;
+
                 await Task.Yield();
                 if (moveToCancelToken.IsCancellationRequested)
                 {
@@ -234,7 +244,9 @@ public class PersonBehavior : MonoBehaviour
         await FindPath();
         moveToCancelToken?.Cancel();
         moveToCancelToken = new CancellationTokenSource();
+
         if (pathStack.Count != 0) {movingTask = MoveTo(moveToCancelToken, delaredVSocialStatusDst);}
+
     }
 
     public bool RollTheDice(float trueProb)

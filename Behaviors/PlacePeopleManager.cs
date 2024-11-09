@@ -13,6 +13,7 @@ using UnityEngine.Assertions;
 //  ************************
 public class PlacePeopleManager : MonoBehaviour
 {
+
     //VARIABLES ->  static infos
     public ActionCancelRegister actionCancelRegister;
     private List<PlacePrototype> homes_debug =
@@ -21,6 +22,7 @@ public class PlacePeopleManager : MonoBehaviour
             new PlacePrototype(new UnityEngine.Vector3(10, 10),PlaceType.Home,new Vector3(2,2)),
             new PlacePrototype(new UnityEngine.Vector3(4, 10),PlaceType.Home,new Vector3(2,2)),
             new PlacePrototype(new UnityEngine.Vector3(11, 5),PlaceType.Home,new Vector3(2,2)),
+
         };
     private List<PlacePrototype> offices_debug =
         new List<PlacePrototype> {
@@ -77,8 +79,10 @@ public class PlacePeopleManager : MonoBehaviour
             GameObject newPlace = Instantiate(placePrefab);
             PlaceBehavior newBehavior = newPlace.GetComponent<PlaceBehavior>();
             newBehavior.init(
+
                 offices_debug[i],
                 gridValuesAttacher
+
                 );
             offices.Add(newBehavior);
         }
@@ -87,8 +91,10 @@ public class PlacePeopleManager : MonoBehaviour
             GameObject newPlace = Instantiate(placePrefab);
             PlaceBehavior newBehavior = newPlace.GetComponent<PlaceBehavior>();
             newBehavior.init(
+
                 homes_debug[j],
                 gridValuesAttacher
+
                 );
             homes.Add(newBehavior);
         }

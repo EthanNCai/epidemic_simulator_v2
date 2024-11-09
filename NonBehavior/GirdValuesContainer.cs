@@ -72,6 +72,7 @@ public class GridValuesContainer<TGridObject>
 
     }
 
+
     public TGridObject[,] GetGridValuesArray()
     {
         return this.gridArray;
@@ -82,12 +83,25 @@ public class GridValuesContainer<TGridObject>
     }
 
 
+
     public TGridObject GetGridObj(Vector3 localPosition)
     {
         //Vector3Int cellPosition = grid.LocalToCell(localPosition);s
 
-        Vector3Int cellPosition = 
-            new Vector3Int((int)Math.Floor(localPosition.x), (int)Math.Floor(localPosition.y));
+        Vector3Int cellPosition =
+            LocalToCellPositionConverter(localPosition);
+        if (CheckPositionValid(cellPosition))
+        {
+
+            return gridArray[cellPosition.x, cellPosition.y];
+        }
+        else
+        {
+            return default;
+        }
+    }
+    public TGridObject GetGridObj(Vector3Int cellPosition)
+    {
         if (CheckPositionValid(cellPosition))
         {
 
