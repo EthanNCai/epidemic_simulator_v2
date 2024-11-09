@@ -31,11 +31,13 @@ public class TimeManager : MonoBehaviour
     private int currentDay = 1;
     private int currentHour = 0;
     public float hourDuration = 1.0f;
-    private float movingSpeed = 3.0f;
+    //private float movingSpeed = 3.0f;
     private float timer = 0.0f;
+    private float timerDaywise = 0.0f;
     private float timerSub = 0.0f;
-    //public Speed speed;
     private int speedIndex = 0;
+
+    private float timeScaleBeforPause = 0;
     public enum Speed
     {
         Default,
@@ -45,39 +47,16 @@ public class TimeManager : MonoBehaviour
 
     }
     private List<Speed> speeds = new List<Speed> { Speed.Default, Speed.Double, Speed.Triple };
-
-    private Speed GetSpeed()
+    public float GetTime24()
     {
-        return speeds[speedIndex];
-    }
-    public float GetMovingSpeed()
-    {
-        return movingSpeed;
+        float scaler = 1f / hourDuration;
+        return timerDaywise * scaler;
     }
 
-    public float GetCorrespondingHourDuration()
+
+    public float GetDefaultMovingSpeed()
     {
-        switch (GetSpeed())
-        {
-            case Speed.Default: { return 0.9f; }
-            case Speed.Double: { return 0.7f; }
-            case Speed.Triple: { return 0.5f; }
-            //case Speed.Quad: { return 0.4f; }
-            //case Speed.Max: { return 0.3f; }
-            default: return 1.0f;
-        }
-    }
-    public float GetCorrespondingMovingSpeed()
-    {
-        switch (GetSpeed())
-        {
-            case Speed.Default: { return 5f; }
-            case Speed.Double: { return 8f; }
-            case Speed.Triple: { return 11f; }
-            //case Speed.Quad: { return 7.0f; }
-            //case Speed.Max: { return 25.0f; }
-            default: return 1.0f;
-        }
+        return 5f;
     }
 
 
@@ -90,9 +69,21 @@ public class TimeManager : MonoBehaviour
         else
         {
             speedIndex++;
+            Time.timeScale += 0.8f;
         }
-        hourDuration = GetCorrespondingHourDuration();
-        movingSpeed = GetCorrespondingMovingSpeed();
+    }
+    public void PauseOrResume()
+    {
+        if(Time.timeScale != 0)
+        {
+            timeScaleBeforPause = Time.timeScale;
+            Time.timeScale = 0f;
+        }
+        else
+        {
+            Time.timeScale = timeScaleBeforPause;
+        }
+        
     }
 
     public void SpeedDown()
@@ -105,15 +96,15 @@ public class TimeManager : MonoBehaviour
         else
         {
             speedIndex--;
+            Time.timeScale -= 0.8f;
         }
-        hourDuration = GetCorrespondingHourDuration();
-        movingSpeed = GetCorrespondingMovingSpeed();
     }
-
 
 
     void Update()
     {
+        timerDaywise += Time.deltaTime;
+        
         timer += Time.deltaTime;
         timerSub += Time.deltaTime;
         if (timerSub > hourDuration *0.6f)
@@ -133,6 +124,7 @@ public class TimeManager : MonoBehaviour
             }
             if (currentHour >= 24)
             {
+                timerDaywise = 0;
                 currentHour = 0;
                 currentDay++;
                 OnDayChanged?.Invoke(this, new OnDayChangedEventArgs { newDay = currentDay });

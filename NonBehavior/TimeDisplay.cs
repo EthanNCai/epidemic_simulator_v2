@@ -17,12 +17,12 @@ public class TimeDisplay : MonoBehaviour
         timeManager.OnDayChanged += (object sender, TimeManager.OnDayChangedEventArgs eventArgs) =>
         {
             day = eventArgs.newDay;
-            tmp.text = "Day: " + day + ", Hour: " + hour;
+            tmp.text = "第" + day + "天 " + hour + ":00";
         };
         timeManager.OnHourChanged += (object sender, TimeManager.OnHourChangedEventArgs eventArgs) =>
         {
             hour = eventArgs.newHour;
-            tmp.text = "Day: " + day + ", Hour: " + hour;
+            tmp.text = "第" + day + "天 " + hour + ":00";
         };
     }
 

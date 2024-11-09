@@ -10,13 +10,14 @@ public class GridValuesAttachedBehavior : MonoBehaviour
     public GameObject volumeVisualizeTilePrefab;
     public bool isVisualizePathFinding;
     public bool isVisualizeVolume;
-
-
-
+    public bool isVisualizeClarance;
     public GridValuesContainer<PathFindingNode> pathFindingGVC;
-    public GridValuesContainer<VolumeVisualizeNode> volumeGVC;
+    public GridValuesContainer<VolumeVisualizeNode> virusVolumeGVC;
+    public GridValuesContainer<PlaceClaranceNode> placeClaranceGVC;
 
-    void Awake()
+
+    void Start()
+
     {
         pathFindingGVC = new GridValuesContainer<PathFindingNode>(
             isVisualizePathFinding,
@@ -25,7 +26,9 @@ public class GridValuesAttachedBehavior : MonoBehaviour
             width,
             height,
             (GridValuesContainer<PathFindingNode> g, Vector3Int v, TimeManager tm) => new PathFindingNode(g, v, tm));
-        volumeGVC = new GridValuesContainer<VolumeVisualizeNode>(
+
+        virusVolumeGVC = new GridValuesContainer<VolumeVisualizeNode>(
+
             isVisualizeVolume,
             timeManager,
             grid,
@@ -33,15 +36,23 @@ public class GridValuesAttachedBehavior : MonoBehaviour
             height,
             (GridValuesContainer<VolumeVisualizeNode> g, Vector3Int v, TimeManager tm) => new VolumeVisualizeNode(g, v, tm));
 
+        placeClaranceGVC = new GridValuesContainer<PlaceClaranceNode>(
+            isVisualizeClarance,
+            timeManager,
+            grid,
+            width,
+            height,
+            (GridValuesContainer<PlaceClaranceNode> g, Vector3Int v, TimeManager tm) => new PlaceClaranceNode(g, v, tm));
+
         // set volume visualize tile for virusVolumeGridValuesManager
-        for (int i = 0; i < volumeGVC.width; i++)
+
+        for (int i = 0; i < virusVolumeGVC.width; i++)
         {
-            for (int j = 0; j < volumeGVC.height; j++)
+            for (int j = 0; j < virusVolumeGVC.height; j++)
             {
-                GameObject newVirusTile = Instantiate(volumeVisualizeTilePrefab);
-                volumeGVC.GetGridObj(new UnityEngine.Vector3(i, j)).SetVirusVolumeTile(newVirusTile);
-                GameObject newPopuTile = Instantiate(volumeVisualizeTilePrefab);
-                volumeGVC.GetGridObj(new UnityEngine.Vector3(i, j)).SetPopuVolumeTile(newPopuTile);
+                GameObject newTile = Instantiate(virusVolumeTilePrefab);
+                virusVolumeGVC.GetGridObj(new UnityEngine.Vector3(i, j)).SetVirusVolumeTile(newTile);
+
             }
         }
     }
@@ -51,7 +62,16 @@ public class GridValuesAttachedBehavior : MonoBehaviour
         UnityEngine.Vector3 localCenter =  new UnityEngine.Vector3((width / 2) * grid.cellSize.x, (height / 2) * grid.cellSize.y, -10);
         return transform.TransformPoint(localCenter);
     }
-
+    public UnityEngine.Vector3 GetWorldTopRightCorner()
+    {
+        Vector3 localCenter = new Vector3(width * grid.cellSize.x, height * grid.cellSize.y, -10);
+        return transform.TransformPoint(localCenter);
+    }
+    public UnityEngine.Vector3 GetWorldBottomLeftCorner()
+    {
+        Vector3 localCenter = new Vector3(0,0, -10);
+        return transform.TransformPoint(localCenter);
+    }
     void Update()
     {
         
