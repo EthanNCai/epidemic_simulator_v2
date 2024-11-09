@@ -26,7 +26,7 @@ public class PeopleInfectionManager : MonoBehaviour
             PersonBehavior personBehavior = personObj.GetComponent<PersonBehavior>();
             
             if (personBehavior.infection == null) { continue; }
-            VolumeVisualizeNode tileVirusVolume = gridValuesAttachedBehavior.virusVolumeGridValuesManager.GetGridObj(personObj.transform.position);
+            VolumeVisualizeNode tileVirusVolume = gridValuesAttachedBehavior.virusVolumeGVC.GetGridObj(personObj.transform.position);
             PathFindingNode pathFindingNode = gridValuesAttachedBehavior.pathFindingGVC.GetGridObj(personObj.transform.position);
             int volumeToSet = Mathf.Max(tileVirusVolume.virusVolume, personBehavior.infection.CheckVirusVolume());
             tileVirusVolume.SetVirusVolume(volumeToSet);
@@ -35,7 +35,7 @@ public class PeopleInfectionManager : MonoBehaviour
 
     public int CheckExposeVolumeHere(Vector3 PersonPosition)
     {
-        return gridValuesAttachedBehavior.virusVolumeGridValuesManager.GetGridObj(PersonPosition).virusVolume;
+        return gridValuesAttachedBehavior.virusVolumeGVC.GetGridObj(PersonPosition).virusVolume;
     }
     public void someOneJustGotInfected(GameObject person)
     {

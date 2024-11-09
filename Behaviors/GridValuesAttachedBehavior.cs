@@ -10,10 +10,12 @@ public class GridValuesAttachedBehavior : MonoBehaviour
     public GameObject virusVolumeTilePrefab;
     public bool isVisualizePathFinding;
     public bool isVisualizeVolume;
+    public bool isVisualizeClarance;
     public GridValuesContainer<PathFindingNode> pathFindingGVC;
-    public GridValuesContainer<VolumeVisualizeNode> virusVolumeGridValuesManager;
+    public GridValuesContainer<VolumeVisualizeNode> virusVolumeGVC;
+    public GridValuesContainer<PlaceClaranceNode> placeClaranceGVC;
 
-    void Awake()
+    void Start()
     {
         pathFindingGVC = new GridValuesContainer<PathFindingNode>(
             isVisualizePathFinding,
@@ -22,7 +24,7 @@ public class GridValuesAttachedBehavior : MonoBehaviour
             width,
             height,
             (GridValuesContainer<PathFindingNode> g, Vector3Int v, TimeManager tm) => new PathFindingNode(g, v, tm));
-        virusVolumeGridValuesManager = new GridValuesContainer<VolumeVisualizeNode>(
+        virusVolumeGVC = new GridValuesContainer<VolumeVisualizeNode>(
             isVisualizeVolume,
             timeManager,
             grid,
@@ -30,13 +32,21 @@ public class GridValuesAttachedBehavior : MonoBehaviour
             height,
             (GridValuesContainer<VolumeVisualizeNode> g, Vector3Int v, TimeManager tm) => new VolumeVisualizeNode(g, v, tm));
 
+        placeClaranceGVC = new GridValuesContainer<PlaceClaranceNode>(
+            isVisualizeClarance,
+            timeManager,
+            grid,
+            width,
+            height,
+            (GridValuesContainer<PlaceClaranceNode> g, Vector3Int v, TimeManager tm) => new PlaceClaranceNode(g, v, tm));
+
         // set volume visualize tile for virusVolumeGridValuesManager
-        for (int i = 0; i < virusVolumeGridValuesManager.width; i++)
+        for (int i = 0; i < virusVolumeGVC.width; i++)
         {
-            for (int j = 0; j < virusVolumeGridValuesManager.height; j++)
+            for (int j = 0; j < virusVolumeGVC.height; j++)
             {
                 GameObject newTile = Instantiate(virusVolumeTilePrefab);
-                virusVolumeGridValuesManager.GetGridObj(new UnityEngine.Vector3(i, j)).SetVirusVolumeTile(newTile);
+                virusVolumeGVC.GetGridObj(new UnityEngine.Vector3(i, j)).SetVirusVolumeTile(newTile);
             }
         }
     }

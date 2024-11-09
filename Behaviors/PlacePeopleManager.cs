@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -13,9 +14,10 @@ using UnityEngine.Assertions;
 public class PlacePeopleManager : MonoBehaviour
 {
     //VARIABLES ->  static infos
+    public ActionCancelRegister actionCancelRegister;
     private List<PlacePrototype> homes_debug =
         new List<PlacePrototype> {
-            //new Place(new UnityEngine.Vector3(2, 2),1,1),
+            //new Place(new UnityEngine.Vectdor3(2, 2),1,1),
             new PlacePrototype(new UnityEngine.Vector3(10, 10),PlaceType.Home,new Vector3(2,2)),
             new PlacePrototype(new UnityEngine.Vector3(4, 10),PlaceType.Home,new Vector3(2,2)),
             new PlacePrototype(new UnityEngine.Vector3(11, 5),PlaceType.Home,new Vector3(2,2)),
@@ -27,6 +29,12 @@ public class PlacePeopleManager : MonoBehaviour
             new PlacePrototype(new UnityEngine.Vector3(6, 6),PlaceType.Office,new Vector3(2,2)),
             //new Place(new Vector3(35, 4),2,2),
         };
+
+    private List<PlacePrototype> clinic_debug =
+        new List<PlacePrototype> {
+            new PlacePrototype(new UnityEngine.Vector3(14, 14),PlaceType.Clinic,new Vector3(1,1)),
+            new PlacePrototype(new UnityEngine.Vector3(10, 13),PlaceType.Clinic,new Vector3(1,2))
+        };
     // ***********************
 
     // VARIABLES ->  refs
@@ -35,11 +43,12 @@ public class PlacePeopleManager : MonoBehaviour
 
     // VARIABLES -> place person container - related
     public RevenueManager revenueManager;
-    public GridValuesAttachedBehavior gridValuesAttachedBehavior;
+    public GridValuesAttachedBehavior gridValuesAttacher;
     public PeopleInfectionManager personInfectionManager;
     public GameObject personPrefab;
     public GameObject placePrefab;
     private List<PlaceBehavior> homes = new List<PlaceBehavior>();
+    private List<PlaceBehavior> clinics = new List<PlaceBehavior>();
     private List<PlaceBehavior> offices = new List<PlaceBehavior>();
     public List<GameObject> persons = new List<GameObject>();
     // ***********************
@@ -49,16 +58,27 @@ public class PlacePeopleManager : MonoBehaviour
     Camera mainCamera;
     // ***********************
 
-    void Start()
+    async void Start()
     {
-        // generate the people
+        // generate place and people
+        for (int i = 0; i < clinic_debug.Count; i++)
+        {
+            GameObject newPlace = Instantiate(placePrefab);
+            PlaceBehavior newBehavior = newPlace.GetComponent<PlaceBehavior>();
+            newBehavior.init(
+                clinic_debug[i],
+                gridValuesAttacher
+                );
+            clinics.Add(newBehavior);
+        }
+
         for (int i = 0; i < offices_debug.Count; i++)
         {
             GameObject newPlace = Instantiate(placePrefab);
             PlaceBehavior newBehavior = newPlace.GetComponent<PlaceBehavior>();
             newBehavior.init(
                 offices_debug[i],
-                gridValuesAttachedBehavior
+                gridValuesAttacher
                 );
             offices.Add(newBehavior);
         }
@@ -68,11 +88,27 @@ public class PlacePeopleManager : MonoBehaviour
             PlaceBehavior newBehavior = newPlace.GetComponent<PlaceBehavior>();
             newBehavior.init(
                 homes_debug[j],
-                gridValuesAttachedBehavior
+                gridValuesAttacher
                 );
             homes.Add(newBehavior);
         }
 
+        // after we've set the initial places
+        // let's calculate the clarance for the first time 
+
+        PlaceClaranceNode[,] gridValue =  gridValuesAttacher.placeClaranceGVC.GetGridArray();
+
+        List<Task> claranceCalcuTasks = new List<Task>();
+        for (int i = 0; i < gridValuesAttacher.placeClaranceGVC.width; i++)
+        {
+            for (int j = 0; j < gridValuesAttacher.placeClaranceGVC.height; j++)
+            {
+                claranceCalcuTasks.Add(gridValue[i,j].CalculateClarance());
+            }
+        }
+        await Task.WhenAll(claranceCalcuTasks);
+
+       // initialize all the citizens after we set all the places
 
         for (int i = 0; i < offices_debug.Count; i++)
         {
@@ -84,16 +120,14 @@ public class PlacePeopleManager : MonoBehaviour
                     newPerson.GetComponent<PersonBehavior>().init(
                         homes[i],
                         offices[i],
-                        gridValuesAttachedBehavior,
+                        gridValuesAttacher,
                         timeManager,
                         personInfectionManager,
                         newPerson,
                         null,
-                        revenueManager
+                        revenueManager,
+                        clinics
                         );
-                    //newPerson.GetComponent<HoverColorChanger>().init(
-                    //    Camera.main
-                    //    );
                     persons.Add(newPerson);
                 }
             }
@@ -102,12 +136,13 @@ public class PlacePeopleManager : MonoBehaviour
         newPerson_.GetComponent<PersonBehavior>().init(
             homes[0],
             offices[0],
-            gridValuesAttachedBehavior,
+            gridValuesAttacher,
             timeManager,
             personInfectionManager,
             newPerson_,
             new Infection(),
-            revenueManager
+            revenueManager,
+            clinics
             );
         persons.Add(newPerson_);
         personInfectionManager.someOneJustGotInfected(newPerson_);
@@ -121,7 +156,14 @@ public class PlacePeopleManager : MonoBehaviour
         BuidableBehavior.OnBuildingPreviewStartEvnentArg eventArgs) =>
         {
             GeneratePlacePreview(eventArgs.placeType);
+            actionCancelRegister.SetActionInstance(PanelType.Build);
         };
+
+        ActionCancelRegister.OnBuildCancel += (sender, e) =>
+        {
+            DestroyPlacePreview();
+        };
+
         // ***********************
     }
 
@@ -144,6 +186,7 @@ public class PlacePeopleManager : MonoBehaviour
     public void DestroyPlacePreview()
     {
         Assert.IsTrue(placePreviewingObj != null );
+        Destroy(placePreviewingObj);
         //placePreviewingObj = Instantiate(placePrefab);
 
     }
@@ -170,7 +213,7 @@ public class PlacePeopleManager : MonoBehaviour
             Vector3 mouseCellPosition = GridValuesContainer<PathFindingNode>.localToCell(mouseGridLocalPosition);
             placePreviewingObj.transform.position = mouseCellPosition;
             
-            Debug.Log(mouseGridLocalPosition);
+            //Debug.Log(mouseGridLocalPosition);
         }
         //Debug.Log(Input.mousePosition.ToString());
     }

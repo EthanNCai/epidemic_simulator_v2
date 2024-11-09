@@ -6,8 +6,9 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class PersonSelectionManager : MonoBehaviour, IPointerEnterHandler,IPointerExitHandler, IPointerClickHandler { 
+public class PersonSelectionManager : MonoBehaviour, IPointerEnterHandler,IPointerExitHandler, IPointerClickHandler {
 
+    public ActionCancelRegister actionCancelRegister;
     private Camera mainCamera;
     private SpriteRenderer spriteRenderer; 
     private PersonBehavior personBehavior;
@@ -25,6 +26,7 @@ public class PersonSelectionManager : MonoBehaviour, IPointerEnterHandler,IPoint
 
     void Start()
     {
+        actionCancelRegister = GameObject.FindFirstObjectByType<ActionCancelRegister>();
         personBehavior = GetComponent<PersonBehavior>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         originalColor = spriteRenderer.color;
@@ -38,11 +40,15 @@ public class PersonSelectionManager : MonoBehaviour, IPointerEnterHandler,IPoint
         imgTransform = canvasTransform.GetChild(0);
 
         TextMeshProUGUI[] textMeshs = imgTransform.GetComponentsInChildren<TextMeshProUGUI>();
-        Debug.Log(textMeshs.Length);
+        //Debug.Log(textMeshs.Length);
         IDTextTMP = textMeshs[0];
         InfectionStateTMP = textMeshs[1];
         SocialStateTMP = textMeshs[2];
 
+        ActionCancelRegister.OnPersonInspectClosing += (sender, e) =>
+        {
+            Unselect();
+        };
     }
 
     void Update()
@@ -105,6 +111,7 @@ public class PersonSelectionManager : MonoBehaviour, IPointerEnterHandler,IPoint
         {
             SetHightlighted();
             isSelected = true;
+            actionCancelRegister.SetActionInstance(PanelType.PersonInspect);
         }
         else
         {

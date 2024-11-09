@@ -71,6 +71,11 @@ public class GridValuesContainer<TGridObject>
         }
 
     }
+
+    public TGridObject[,] GetGridValuesArray()
+    {
+        return this.gridArray;
+    }
     public static Vector3 localToCell(Vector3 localPos)
     {
         return new Vector3Int((int)Math.Floor(localPos.x), (int)Math.Floor(localPos.y));

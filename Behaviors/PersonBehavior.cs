@@ -16,7 +16,7 @@ public enum SocialStatus
     Working,
     Shopping,
     Isolated,
-    InHospital,
+    InClinic,
     Testing,
     BLANK,
 }
@@ -24,6 +24,7 @@ public enum SocialStatus
 public class PersonBehavior : MonoBehaviour
 {
     private int wage = 1;
+    private float aRandomTimeBeforeNoon;
     private RevenueManager revenueManager;
     private GameObject personObj;
     private TimeManager timeManager;
@@ -35,10 +36,11 @@ public class PersonBehavior : MonoBehaviour
     CancellationTokenSource moveToCancelToken;
     PathFinding pathFinding ;
     private static readonly object gridValuesContainerLock = new object();
-    PlaceBehavior home;
-    PlaceBehavior office;
-    PlaceBehavior dstPlace;
-    
+
+    private List<PlaceBehavior> clinics;
+    private PlaceBehavior home;
+    private PlaceBehavior office;
+    private PlaceBehavior dstPlace;
     
     private UnityEngine.Vector3 currentPosition;
     private PlaceBehavior currentPlace = null;
@@ -51,7 +53,7 @@ public class PersonBehavior : MonoBehaviour
     private bool isInitialized =  false;
     public string _name;
     static string[] givenNames = new string[] { "蔡", "韦", "李", "翁", "郑", "王" };
-    static string[] firstNames = new string[] { "俊志", "永佳", "雪婷", "挺", "宇涛", "宇喆", "心怡" };
+    static string[] firstNames = new string[] { "俊志", "永佳", "雪婷", "挺", "宇涛", "宇", "心怡" };
     private const float DECISION_DISTANCE = 0.1f;
     private const float UNINFECTED_INFECTION_PROB = 0.3f;
     private const float RECOVERD_INFECTION_PROB = 0.1f;
@@ -60,6 +62,8 @@ public class PersonBehavior : MonoBehaviour
     private const int HOME_OFFICE_MIN_DURATION = 4;
     private const int LAST_TIME_TO_WORK = 12;
     private const int LAST_TIME_TO_HOME = 23;
+    private const int SEVERE_VIRUS_VOLUME = 80;
+    private const int OUT_OF_HOSPITAL_LIMIT = 30;
 
     // commuting related
     public SocialStatus socialStatus;
@@ -68,13 +72,16 @@ public class PersonBehavior : MonoBehaviour
     private float timeToHomeDynamic;
 
     // infection related
+    private bool isSevereInfection = false;
+    private PlaceBehavior registeredClinic = null;
     public Infection infection = null;
     public int maxExposedToday = 0;
     public InfectionStatus infectionStatus = InfectionStatus.UnInfected;
     private System.Random randomGenerator = new System.Random();
     public void init(PlaceBehavior home, PlaceBehavior office, GridValuesAttachedBehavior gridValuesAttachedBehavior, TimeManager timeManager, PeopleInfectionManager personInfectionManager, GameObject personObj,Infection infection,
-        RevenueManager revenueManager)
+        RevenueManager revenueManager, List<PlaceBehavior> clinics)
     {
+        this.clinics = clinics;
         this.revenueManager = revenueManager;
         this._name = NameGenerator();
         this.timeManager = timeManager;
@@ -89,11 +96,7 @@ public class PersonBehavior : MonoBehaviour
         transform.position = home.GenerateInPlacePosition();
         pathStack = new Stack<Vector3>();
         pathFinding = new PathFinding(gridValuesAttachedBehavior.pathFindingGVC);
-        //timeManager.OnHourChanged += (object sender, TimeManager.OnHourChangedEventArgs eventArgs) =>
-        //{
-        //    //await Scheduler(eventArgs);
-        //    //StartCoroutine(CoroutineScheduler(eventArgs));
-        //};
+ 
         timeManager.OnShiftHourChanged += (object sender,
         TimeManager.OnShiftHourChangedEventArgs eventArgs) =>
         {
@@ -120,7 +123,7 @@ public class PersonBehavior : MonoBehaviour
         PlainScheduler();
     }
 
-    static public string[] SocialStatusTexts = new string[] { "正前往", "在家", "工作中", "已痊愈" };
+    static public string[] SocialStatusTexts = new string[] { "正前往", "在家", "工作中", "住院中" };
     static public string GetSocialStatusDescriber(PersonBehavior personBehavior)
     {
         SocialStatus socialStatus = personBehavior.socialStatus;
@@ -133,6 +136,10 @@ public class PersonBehavior : MonoBehaviour
                     return SocialStatusTexts[1]; }
             case SocialStatus.Working: { 
                     return SocialStatusTexts[2]; }
+            case SocialStatus.InClinic:
+                {
+                    return SocialStatusTexts[3];
+                }
             default: { return "错误"; }
         }
     }
@@ -145,13 +152,20 @@ public class PersonBehavior : MonoBehaviour
         while (true) {
 
             if (pathStack.Count == 0) {
+                // arrived
                 currentPlace = dstPlace;
+                // switch socialStatus
                 if (delaredVSocialStatusDst != SocialStatus.BLANK) 
                 { 
                     socialStatus = delaredVSocialStatusDst;
                 } else
                 {
                     socialStatus = dstPlace.vSocialStatusDst;
+                }
+                // handle appointment (Only Medical Facilities need this action)
+                if(dstPlace.placeType == PlaceType.Clinic)
+                {
+                    dstPlace.personEntered(this);
                 }
                 break;
             }
@@ -209,8 +223,10 @@ public class PersonBehavior : MonoBehaviour
 
     private async void GoToPlace(PlaceBehavior placeToGo, SocialStatus delaredVSocialStatusDst = SocialStatus.BLANK)
     {
+        // if he's already here
+        if(placeToGo == currentPlace){ return; }
+
         // set Status
-        //dstType = placeToGo.placeType;
         socialStatus = SocialStatus.Moving;
 
         // let's go ~
@@ -239,7 +255,7 @@ public class PersonBehavior : MonoBehaviour
         // volumExposed -> 0~100 integer
         if (infectionStatus == InfectionStatus.UnInfected)
         {
-            return UNINFECTED_INFECTION_PROB * (volumExposed * 0.01f);
+            return UNINFECTED_INFECTION_PROB * (volumExposed * 0.1f);
         }
         else if (infectionStatus == InfectionStatus.Recovered)
         {
@@ -282,6 +298,54 @@ public class PersonBehavior : MonoBehaviour
     void PlainScheduler()
     {
         float currentTime = timeManager.GetTime24();
+
+        if (currentTime > aRandomTimeBeforeNoon)
+        {
+            aRandomTimeBeforeNoon = float.MaxValue;
+            // *** Possibility B - > if in medical facilities, but cured ***
+            if (currentPlace!= null && currentPlace.placeType == PlaceType.Clinic)
+            {
+                if (infection == null)
+                {
+                    registeredClinic = null; 
+                    currentPlace.personExited(this);
+                }
+                return;
+            // ***********
+            }
+            else if (isSevereInfection)
+            // *** Possibility A - > if severe and not in a Medical Facility, then seek for help ***
+            {
+                //if not in a clinic check clinic avaliability
+                PlaceBehavior targetClinic = null;
+                for (int i = 0; i < clinics.Count; i++)
+                {
+                    if (clinics[i].CheckIsAvaliable())
+                    {
+                        targetClinic = clinics[i];
+                    }
+                }
+                if (targetClinic == null)
+                {
+                    // no clinic avaliable
+                    //GoToPlace(home);
+                    Debug.Log("A sim failed to find a available medical facility");
+                }
+                else
+                {
+                    targetClinic.personAppointed(this);
+                    registeredClinic = targetClinic;
+                    GoToPlace(targetClinic);
+                }
+                return;
+
+            }
+            // ***********
+        }
+
+        if (isSevereInfection || registeredClinic != null) { return; }
+
+        // *** Possibility C - > if normal, consider go to work ***
         if (currentTime > timeToWorkDynamic)
         {
             timeToWorkDynamic = float.MaxValue;
@@ -294,7 +358,7 @@ public class PersonBehavior : MonoBehaviour
             
             GoToPlace(home);
         }
-
+        // ***********
     }
 
     public void HourSummaryCalculation(TimeManager.OnShiftHourChangedEventArgs eventArgs)
@@ -315,6 +379,8 @@ public class PersonBehavior : MonoBehaviour
     }
     public void DaySummaryCalculation(TimeManager.OnDayChangedEventArgs eventArgs)
     {
+        
+        aRandomTimeBeforeNoon = (float)randomGenerator.Next(11) + (float)randomGenerator.NextDouble();
         (timeToWorkDynamic,timeToHomeDynamic) = GetRandomWorkSchedule();
         GetComponent<SpriteRenderer>().color = GetDisplayColor();
 
@@ -322,6 +388,7 @@ public class PersonBehavior : MonoBehaviour
         if (infection != null)
         {
             bool isStageSwitch = infection.ProgressAndReturnIsNextStage();
+            isSevereInfection = infection.CheckVirusVolume() > 80;
             infectionStatus = CheckStatus();
           
             if (infectionStatus == InfectionStatus.Recovered)
@@ -337,6 +404,7 @@ public class PersonBehavior : MonoBehaviour
             }
             return;
         }
+        
 
         // all infected persons should already got returned
         Assert.IsTrue(infection==null);
