@@ -14,8 +14,8 @@ public class BuildingManager : MonoBehaviour
         // generate buidables.
         GameObject temp = Instantiate(buidableUIPrefabs,transform);
         temp.GetComponent<BuidableBehavior>().init(PlaceType.Clinic);
-        GameObject temp2 = Instantiate(buidableUIPrefabs, transform);
-        temp2.GetComponent<BuidableBehavior>().init(PlaceType.Hospital);
+        //GameObject temp2 = Instantiate(buidableUIPrefabs, transform);
+        //temp2.GetComponent<BuidableBehavior>().init(PlaceType.Hospital);
 
     }
 

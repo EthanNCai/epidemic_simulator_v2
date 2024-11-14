@@ -12,6 +12,10 @@ public class CentralMenuManager : MonoBehaviour
         {
             CloseBuidingMenu();
         };
+        PlacePeopleManager.OnBuildConfirm += (object sender, PlacePeopleManager.OnBuildConfrimEventArg eventArgs) =>
+        {
+            buildingMenu.SetActive(false);
+        };
     }
     public void OpenBuildingMenu()
     {

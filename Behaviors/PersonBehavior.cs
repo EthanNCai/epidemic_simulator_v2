@@ -106,6 +106,19 @@ public class PersonBehavior : MonoBehaviour
         {
             DaySummaryCalculation(eventArgs);
         };
+
+        PlacePeopleManager.OnBuildConfirm += (object sender, PlacePeopleManager.OnBuildConfrimEventArg eventArgs) =>
+        {
+            switch (eventArgs.updateType)
+            {
+                case PlaceType.Clinic:
+                {
+                    clinics = eventArgs.updatedPlaceBehaviorList;
+                    break;
+                }
+            }
+            
+        };
         isInitialized = true;
 
         // initial generation

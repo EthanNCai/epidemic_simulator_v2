@@ -22,11 +22,14 @@ public class Drag : MonoBehaviour, IDragHandler
     {
         //if (eventData.pointerEnter.layer == LayerMask.NameToLayer("HiddenUI"))
         //{
+
+        if(Input.GetMouseButton(2)) {
+
             float dragSpeedRatio = cameraBehavior.GetCameraRatio();
             p1 = Camera.main.transform.position - camera_right * Input.GetAxisRaw("Mouse X") * dragSpeed * dragSpeedRatio
                 - (camera_up + camera_forward).normalized * Input.GetAxisRaw("Mouse Y") * dragSpeed * dragSpeedRatio;
 
             cameraBehavior.UpdateCameraPositionAttempt(p1);
-        //}
+        }
     }
 }

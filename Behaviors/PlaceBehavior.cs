@@ -8,8 +8,7 @@ using UnityEngine.PlayerLoop;
 public class PlaceBehavior : MonoBehaviour
 {
     static int SIZE_TO_CAPACITY_RATIO = 5;
-
-
+    public Color basicPlaceColor;
     public UnityEngine.Vector3 cellPosition;
     public Vector3 size;
     private System.Random randomGenerator = new System.Random();
@@ -23,9 +22,10 @@ public class PlaceBehavior : MonoBehaviour
     public List<PersonBehavior> personsInHere = new List<PersonBehavior>();
     public List<PersonBehavior> personsAppointedHere = new List<PersonBehavior>();
 
-    public void init(PlacePrototype placePrototype,GridValuesAttachedBehavior gridValuesAttacher)
+    public void init(GridValuesAttachedBehavior gridValuesAttacher,PlacePrototype placePrototype)
     {
         //Debug.Log(capacity);
+        GetComponentInChildren<SpriteRenderer>().color = basicPlaceColor;
         this.placeType = placePrototype.placeType;
         this.vSocialStatusDst = PlacePrototype.VSocialStatusDstInferFromPlaceType(placeType);
         this.cellPosition = placePrototype.cellPosition;
@@ -57,8 +57,10 @@ public class PlaceBehavior : MonoBehaviour
 
     public void shallowInit(PlaceType placeType)
     {
+        this.placeType = placeType;
         Vector3 newSize = PlacePrototype.GetPlaceSize(placeType);
         transform.localScale = newSize;
+        this.size = newSize;
     }
 
 

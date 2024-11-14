@@ -61,5 +61,9 @@ public class ActionCancelRegister : MonoBehaviour
     private void Start()
     {
         button = transform.GetChild(0).gameObject;
+        PlacePeopleManager.OnBuildConfirm += (object sender, PlacePeopleManager.OnBuildConfrimEventArg eventArgs) =>
+        {
+            button.SetActive(false);
+        };
     }
 }

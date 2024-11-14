@@ -1,9 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Assertions;
+using static BuidableBehavior;
 
 
 
@@ -14,6 +16,15 @@ using UnityEngine.Assertions;
 public class PlacePeopleManager : MonoBehaviour
 {
     //VARIABLES ->  static infos
+    public static event EventHandler<OnBuildConfrimEventArg> OnBuildConfirm;
+    public class OnBuildConfrimEventArg : EventArgs
+    {
+        public List<PlaceBehavior> updatedPlaceBehaviorList;
+        public PlaceType updateType;
+    }
+
+    public Color buidableColor;
+    public Color notBuidableColor;
     public ActionCancelRegister actionCancelRegister;
     private List<PlacePrototype> homes_debug =
         new List<PlacePrototype> {
@@ -56,6 +67,7 @@ public class PlacePeopleManager : MonoBehaviour
     // VARIABLES -> building process - related
     GameObject placePreviewingObj = null;
     Camera mainCamera;
+    private bool isBuidable = true;
     // ***********************
 
     async void Start()
@@ -66,8 +78,9 @@ public class PlacePeopleManager : MonoBehaviour
             GameObject newPlace = Instantiate(placePrefab);
             PlaceBehavior newBehavior = newPlace.GetComponent<PlaceBehavior>();
             newBehavior.init(
-                clinic_debug[i],
                 gridValuesAttacher
+                ,
+                clinic_debug[i]
                 );
             clinics.Add(newBehavior);
         }
@@ -77,8 +90,8 @@ public class PlacePeopleManager : MonoBehaviour
             GameObject newPlace = Instantiate(placePrefab);
             PlaceBehavior newBehavior = newPlace.GetComponent<PlaceBehavior>();
             newBehavior.init(
-                offices_debug[i],
-                gridValuesAttacher
+                gridValuesAttacher,
+                offices_debug[i]
                 );
             offices.Add(newBehavior);
         }
@@ -87,8 +100,9 @@ public class PlacePeopleManager : MonoBehaviour
             GameObject newPlace = Instantiate(placePrefab);
             PlaceBehavior newBehavior = newPlace.GetComponent<PlaceBehavior>();
             newBehavior.init(
-                homes_debug[j],
                 gridValuesAttacher
+                ,
+                homes_debug[j]
                 );
             homes.Add(newBehavior);
         }
@@ -96,17 +110,7 @@ public class PlacePeopleManager : MonoBehaviour
         // after we've set the initial places
         // let's calculate the clarance for the first time 
 
-        PlaceClaranceNode[,] gridValue =  gridValuesAttacher.placeClaranceGVC.GetGridArray();
-
-        List<Task> claranceCalcuTasks = new List<Task>();
-        for (int i = 0; i < gridValuesAttacher.placeClaranceGVC.width; i++)
-        {
-            for (int j = 0; j < gridValuesAttacher.placeClaranceGVC.height; j++)
-            {
-                claranceCalcuTasks.Add(gridValue[i,j].CalculateClarance());
-            }
-        }
-        await Task.WhenAll(claranceCalcuTasks);
+        await CalculateClarance();
 
        // initialize all the citizens after we set all the places
 
@@ -193,29 +197,113 @@ public class PlacePeopleManager : MonoBehaviour
     public void ConfirmPlacePreview()
     {
         Assert.IsTrue(placePreviewingObj != null);
-        //GameObject tempPlaceObj = Instantiate(placePrefab);
-
     }
     // ***********************
 
+    async Task CalculateClarance()
+    {
+        PlaceClaranceNode[,] gridValue = gridValuesAttacher.placeClaranceGVC.GetGridArray();
+        List<Task> claranceCalcuTasks = new List<Task>();
+        for (int i = 0; i < gridValuesAttacher.placeClaranceGVC.width; i++)
+        {
+            for (int j = 0; j < gridValuesAttacher.placeClaranceGVC.height; j++)
+            {
+                claranceCalcuTasks.Add(gridValue[i, j].CalculateClarance());
+            }
+        }
+        await Task.WhenAll(claranceCalcuTasks);
+    }
 
-
-    void Update()
+    async void Update()
     {
         if (placePreviewingObj != null)
         {
             Vector3 mouseScreenPosition = Input.mousePosition;
-            //mouseScreenPosition.z = 0;
             Vector3 mouseWorldPosition = mainCamera.ScreenToWorldPoint(mouseScreenPosition);
-            
+
             Vector3 mouseGridLocalPosition = transform.InverseTransformPoint(mouseWorldPosition);
             mouseGridLocalPosition.z = 0;
             Vector3 mouseCellPosition = GridValuesContainer<PathFindingNode>.localToCell(mouseGridLocalPosition);
             placePreviewingObj.transform.position = mouseCellPosition;
-            
-            //Debug.Log(mouseGridLocalPosition);
-        }
-        //Debug.Log(Input.mousePosition.ToString());
-    }
+            // Scan for buidability
 
+
+            int mapWidth = gridValuesAttacher.placeClaranceGVC.width;
+            int mapHeight = gridValuesAttacher.placeClaranceGVC.height;
+
+            PlaceBehavior previewPlaceBehavior = placePreviewingObj.GetComponent<PlaceBehavior>();
+
+            int x_size = (int)previewPlaceBehavior.size.x;
+            int y_size = (int)previewPlaceBehavior.size.y;
+            int x_origin = (int)mouseCellPosition.x;
+            int y_origin = (int)mouseCellPosition.y;
+
+            bool isMinEdge = x_origin - 1 < 0 || y_origin - 1 < 0;
+            bool isMaxEdge = x_origin + x_size >= mapWidth || y_origin + y_size >= mapHeight;
+
+            //Debug.ClearDeveloperConsole();
+            //Debug.Log(y_origin.ToString() + "," + y_size.ToString() + "," + mapHeight.ToString());
+            isBuidable = true;
+            if (isMaxEdge || isMinEdge)
+            {
+                isBuidable = false;
+            }
+            else
+            {
+                for (int xi = (int)mouseCellPosition.x - 1; xi < (int)mouseCellPosition.x + x_size + 1; xi++)
+                {
+                    PlaceClaranceNode placeClaranceNode = gridValuesAttacher.placeClaranceGVC.GetGridObj(new Vector3(xi, y_origin));
+                    (int n, int s) = placeClaranceNode.GetNorthSouth();
+                    if (!(s >= 1 && n >= y_size)) { isBuidable = false; break; }
+                }
+
+                for (int yi = (int)mouseCellPosition.y - 1; yi < (int)mouseCellPosition.y + y_size + 1; yi++)
+                {
+                    PlaceClaranceNode placeClaranceNode = gridValuesAttacher.placeClaranceGVC.GetGridObj(new Vector3(x_origin, yi));
+                    (int w, int e) = placeClaranceNode.GetWestEast();
+                    if (!(w >= 1 && e >= x_size)) { isBuidable = false; break; }
+                }
+            }
+            placePreviewingObj.GetComponentInChildren<SpriteRenderer>().color = isBuidable ? buidableColor : notBuidableColor;
+
+            if (Input.GetMouseButton(0) && isBuidable)
+            {
+                
+
+
+                // fully init £¡
+                previewPlaceBehavior.init(
+                gridValuesAttacher,
+                new PlacePrototype(mouseCellPosition, previewPlaceBehavior.placeType,
+                previewPlaceBehavior.size)
+                );
+                List<PlaceBehavior> placeListToBeUpdated;
+                switch (previewPlaceBehavior.placeType)
+                {
+                    case PlaceType.Clinic: { 
+                        placeListToBeUpdated = clinics; 
+                        break;}
+                    default: { 
+                        placeListToBeUpdated = clinics;
+                        break;}
+                }
+               
+
+
+                clinics.Add(previewPlaceBehavior);
+                // invoke an announcement
+                OnBuildConfirm?.Invoke(this, new OnBuildConfrimEventArg
+                {
+                    updatedPlaceBehaviorList = placeListToBeUpdated,
+                    updateType = previewPlaceBehavior.placeType
+                });
+
+                // recalculate clarance 
+                await CalculateClarance();
+
+                //detach !
+                placePreviewingObj = null;
+            }
+        }
+    }
 }

@@ -12,7 +12,7 @@ public class PlaceClaranceNode
     TimeManager timeManager;
     GridValuesContainer<PlaceClaranceNode> placeClaranceGVC;
     bool isBuilt = false;
-    int[] availableClaranceNEWS = new int[4];
+    public int[] availableClaranceNEWS = new int[4];
     const int NORTH = 0;
     const int SOUTH = 3;
     const int EAST = 1;
@@ -45,9 +45,7 @@ public class PlaceClaranceNode
         int grid_width = placeClaranceGVC.width;
         int grid_height = placeClaranceGVC.height;
         // top
-
-        int temp_x;
-        int temp_y;
+        this.availableClaranceNEWS = new int[4];
 
         List<Task> tasks = new List<Task>();
 
@@ -137,9 +135,25 @@ public class PlaceClaranceNode
         await Task.WhenAll(tasks);
         placeClaranceGVC.TriggerGridObjectChanged(cellPosition);
     }
+
+
     public override string ToString()
     {
-        return availableClaranceNEWS[0].ToString() + " " + availableClaranceNEWS[1].ToString() + "\n"+
-            availableClaranceNEWS[2].ToString() + " " + availableClaranceNEWS[3].ToString() + "\n";
+        return availableClaranceNEWS[NORTH].ToString() + " " + availableClaranceNEWS[EAST].ToString() + "\n" +
+            availableClaranceNEWS[WEST].ToString() + " " + availableClaranceNEWS[SOUTH].ToString() + "\n";
+    }
+
+    //public override string ToString()
+    //{
+    //    return cellPosition.x.ToString() + "," + cellPosition.y.ToString();
+    //}
+
+    public (int, int) GetNorthSouth()
+    {
+        return (availableClaranceNEWS[NORTH], availableClaranceNEWS[SOUTH]);
+    }
+    public (int, int) GetWestEast()
+    {
+        return (availableClaranceNEWS[WEST], availableClaranceNEWS[EAST]);
     }
 }
