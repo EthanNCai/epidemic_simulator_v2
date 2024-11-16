@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Xml.Linq;
 using UnityEngine;
 using static UnityEngine.GraphicsBuffer;
 
@@ -21,19 +22,13 @@ public class PlacePrototype
     public PlaceType placeType;
     public SocialStatus VirtualSocialStatusDst;
 
-    
+
 
     public PlacePrototype(UnityEngine.Vector3 cellPosition, PlaceType placeType, Vector3 size)
     {
         this.placeType = placeType;
-        //if(Mathf.Min(height, width ) < 2)
-        //{
-        //    Debug.LogError("Place Size Should no smaller than 2 Units");
-        //}
         this.cellPosition = cellPosition;
         this.size = size;
-        //this.width = width;
-        //this.height = height;
     }
 
     public Vector3 GenerateInPlacePosition()
@@ -55,6 +50,18 @@ public class PlacePrototype
             default: { return SocialStatus.Moving; }
         }
     }
+    //SPD stands for Spendings
+    //static public Spending GetBasicSPDsFromPlaceType(PlaceType target)
+    //{
+    //    switch (target)
+    //    {
+    //        case PlaceType.Clinic:
+    //            {
+    //                return new Spending("诊所", 1000, 80);
+    //            }
+    //        default: { return null; }
+    //    }
+    //}
 
     static public string[] PlaceTypeTexts = new string[] { "家", "公司","诊所","医院" };
     static public string GetPlaceTypeDescriber(PlaceType target)

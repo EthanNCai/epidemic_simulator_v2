@@ -9,8 +9,6 @@ public class PathFinding
 {
 
     private const int PATH_JITTER_RATIO = 1;
-
-
     private static Dictionary<PathFindingNode, HashSet<PathFindingNode>> neiborDict = new Dictionary<PathFindingNode, HashSet<PathFindingNode>>();
     private const int MOVE_STRAIGHT_COST = 10;
     private const int MOVE_DIAGONAL_COST = 14;

@@ -20,7 +20,7 @@ public class PlacePeopleManager : MonoBehaviour
     public class OnBuildConfrimEventArg : EventArgs
     {
         public List<PlaceBehavior> updatedPlaceBehaviorList;
-        public PlaceType updateType;
+        public PlaceBehavior newPlaceBehavior;
     }
 
     public Color buidableColor;
@@ -181,7 +181,7 @@ public class PlacePeopleManager : MonoBehaviour
     {
         if (placePreviewingObj != null)
         {
-            Debug.LogError("ni xian kai de");
+            Debug.LogError("wtf");
             Destroy(placePreviewingObj);
         }
         placePreviewingObj = Instantiate(placePrefab);
@@ -295,7 +295,9 @@ public class PlacePeopleManager : MonoBehaviour
                 OnBuildConfirm?.Invoke(this, new OnBuildConfrimEventArg
                 {
                     updatedPlaceBehaviorList = placeListToBeUpdated,
-                    updateType = previewPlaceBehavior.placeType
+                    //updateType = previewPlaceBehavior.placeType,
+                    newPlaceBehavior = previewPlaceBehavior
+
                 });
 
                 // recalculate clarance 

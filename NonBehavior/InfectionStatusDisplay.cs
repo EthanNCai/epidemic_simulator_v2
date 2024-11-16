@@ -34,6 +34,9 @@ public class InfectionStatusDisplay : MonoBehaviour
     //    "潜伏期: " + stage1PeopleCounts.ToString() +
     //    "发病期: " + stage2PeopleCounts.ToString();
     //}
+    /// <summary>
+    /// uninfected 123 recoverd 123 Hidden : 123 P2: 123
+    /// </summary>
     private void SendInfosToUI()
     {
         int stage1PeopleCounts = peopleInfectionManager.stage1InfectedPersons.Count;
@@ -41,9 +44,9 @@ public class InfectionStatusDisplay : MonoBehaviour
         int recoverdPeopleCounts = peopleInfectionManager.recoverdPeoples.Count;
         int peopleCounts = placePeopleManager.GetPeopleCounts();
         tmp.text =
-        "未感染: " + (peopleCounts - stage1PeopleCounts - stage2PeopleCounts - recoverdPeopleCounts).ToString() +
-        "已痊愈: " + recoverdPeopleCounts.ToString() +
-        "潜伏期: " + stage1PeopleCounts.ToString() +
-        "发病期: " + stage2PeopleCounts.ToString();
+        "uninfected: " + (peopleCounts - stage1PeopleCounts - stage2PeopleCounts - recoverdPeopleCounts).ToString() +
+        "recoverd: " + recoverdPeopleCounts.ToString() +
+        "P1: " + stage1PeopleCounts.ToString() +
+        "P2: " + stage2PeopleCounts.ToString();
     }
 }

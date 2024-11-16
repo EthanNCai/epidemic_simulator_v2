@@ -36,7 +36,7 @@ public class ActionCancelRegister : MonoBehaviour
         button.SetActive(false);
     }
 
-
+      
     public void SendClosingSignal()
     {
         switch (menuOnHold)

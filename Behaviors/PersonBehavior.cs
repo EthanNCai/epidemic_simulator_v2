@@ -109,7 +109,7 @@ public class PersonBehavior : MonoBehaviour
 
         PlacePeopleManager.OnBuildConfirm += (object sender, PlacePeopleManager.OnBuildConfrimEventArg eventArgs) =>
         {
-            switch (eventArgs.updateType)
+            switch (eventArgs.newPlaceBehavior.placeType)
             {
                 case PlaceType.Clinic:
                 {
@@ -378,7 +378,7 @@ public class PersonBehavior : MonoBehaviour
     {
         if (currentPlace?.placeType == PlaceType.Office)
         {
-            revenueManager.PayTaxes(wage);
+            revenueManager.Gain(wage);
         }
 
         if (infection == null)

@@ -22,9 +22,16 @@ public class PlaceBehavior : MonoBehaviour
     public List<PersonBehavior> personsInHere = new List<PersonBehavior>();
     public List<PersonBehavior> personsAppointedHere = new List<PersonBehavior>();
 
+    // spending related
+    public PolicyManager policyManager;
+    private SpendingDelegate spendingDelegate;
+
+
     public void init(GridValuesAttachedBehavior gridValuesAttacher,PlacePrototype placePrototype)
     {
-        //Debug.Log(capacity);
+        // spending related 
+        policyManager = FindFirstObjectByType<PolicyManager>();
+        spendingDelegate = policyManager.GetSpendingPrototypesAccordingToPolicy(placePrototype.placeType);
         GetComponentInChildren<SpriteRenderer>().color = basicPlaceColor;
         this.placeType = placePrototype.placeType;
         this.vSocialStatusDst = PlacePrototype.VSocialStatusDstInferFromPlaceType(placeType);
