@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Search;
 using UnityEngine;
 
 public class RevRecorder
@@ -25,21 +26,22 @@ public class RevRecorder
 
 
         // maintain the queue
-        dailyQueue.Enqueue(hourTemp);
+        int newHourly = hourTemp;
+        dailyQueue.Enqueue(newHourly);
         if (dailyQueue.Count > 24) { dailyQueue.Dequeue(); }
 
 
         // calculate the hourly stuff
-        int newHourly = hourTemp;
-        hourlyTrend = hourly != 0 ? (newHourly / hourly) * 100 : 100;
+        
+        hourlyTrend = hourly != 0 ? (int)(((float) (newHourly - hourly) / (float)hourly) * 100) : 100;
         hourly = newHourly;
         hourTemp = 0;
 
 
         // calcaulate the daily stuff
         int newDaily = dailyQueue.Sum();
-        dailyTrend = daily != 0 ? (newDaily / daily) * 100 : 100;
+        dailyTrend = daily != 0 ? (int)(((float)(newDaily - daily)/ (float)daily) * 100) : 100;
         daily = newDaily;
-
+        //Debug.Log("Queue contents: " + string.Join(", ", dailyQueue));
     }
 }

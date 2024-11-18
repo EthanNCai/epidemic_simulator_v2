@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +9,12 @@ using UnityEngine;
 
 public class RevenueManager : MonoBehaviour
 {
+    public class OnSpendingItemChangedEventArgs : EventArgs
+    {
+        public SpendingDelegate targetSpendingItem;
+    }
+    public event EventHandler<OnSpendingItemChangedEventArgs> OnSpendingsItemAddition;
+    public event EventHandler<OnSpendingItemChangedEventArgs> OnSpendingsItemRemoval;
     public bool isLog;
     public PolicyManager policyManager;
     public TimeManager timeManager;
@@ -41,16 +48,23 @@ public class RevenueManager : MonoBehaviour
     {
         return revenue;
     }
+    public List<SpendingDelegate> GetSpendingDelegateList()
+    {
+        return spendings;
+    }
+
 
     public void RemoveSpendingItem(SpendingDelegate target)
     {
         Debug.Assert(spendings.Contains(target));
         spendings.Remove(target);
+        OnSpendingsItemRemoval?.Invoke(this, new OnSpendingItemChangedEventArgs { targetSpendingItem = target });
     }
     public void AddSpendingItem(SpendingDelegate target)
     {
         Debug.Assert(!spendings.Contains(target));
         spendings.Add(target);
+        OnSpendingsItemAddition?.Invoke(this, new OnSpendingItemChangedEventArgs { targetSpendingItem = target });
     }
 
 
@@ -63,13 +77,13 @@ public class RevenueManager : MonoBehaviour
             {
                 this.Cost(spendings[i].hourlyCost);
             }
-            CumalativeInfoCalculation_HourlyCalled();
+            RevRecorderStepping();
         };
 
         timeManager.OnDayChanged += (object sender,
         TimeManager.OnDayChangedEventArgs eventArgs) =>
         {
-            // manager daily spendings
+            // manage daily spendings
 
         };
         PlacePeopleManager.OnBuildConfirm += (object sender, PlacePeopleManager.OnBuildConfrimEventArg eventArgs) =>
@@ -80,11 +94,12 @@ public class RevenueManager : MonoBehaviour
         };
     }
 
-    private void CumalativeInfoCalculation_HourlyCalled()
+    private void RevRecorderStepping()
     {
         settledRecorder.step();
         gainRecorder.step();
         costRecorder.step();
     }
+   
 }
 

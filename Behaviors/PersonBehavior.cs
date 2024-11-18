@@ -97,8 +97,8 @@ public class PersonBehavior : MonoBehaviour
         pathStack = new Stack<Vector3>();
         pathFinding = new PathFinding(gridValuesAttachedBehavior.pathFindingGVC);
  
-        timeManager.OnShiftHourChanged += (object sender,
-        TimeManager.OnShiftHourChangedEventArgs eventArgs) =>
+        timeManager.OnHourChanged += (object sender,
+        TimeManager.OnHourChangedEventArgs eventArgs) =>
         {
             HourSummaryCalculation(eventArgs);
         };
@@ -126,7 +126,6 @@ public class PersonBehavior : MonoBehaviour
         
     }
 
-    
     void  Update()
     {
         if (!isInitialized) { return ; }
@@ -374,7 +373,7 @@ public class PersonBehavior : MonoBehaviour
         // ***********
     }
 
-    public void HourSummaryCalculation(TimeManager.OnShiftHourChangedEventArgs eventArgs)
+    public void HourSummaryCalculation(TimeManager.OnHourChangedEventArgs eventArgs)
     {
         if (currentPlace?.placeType == PlaceType.Office)
         {

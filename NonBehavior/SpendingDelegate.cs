@@ -3,11 +3,16 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
+public enum SpendingTypes
+{
+    Medical,
+    Policy
+}
 public class SpendingDelegate 
 {
+    
     public string name;
     public int hourlyCost;
-    //public int dailyCost;
     public int personwiseCost;
 
     public SpendingDelegate(string name, int hourlyCost, int personwiseCost)
